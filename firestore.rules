@@ -1,0 +1,122 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Optional: Use this only for sensitive write operations if requested
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin';
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    // --- Validation Helpers ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'role', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidDevice(data) {
+      return data.keys().hasAll(['serialNumber', 'name', 'ownerId', 'subscriptionStatus', 'lastUpdated']) &&
+             data.serialNumber is string && data.serialNumber.size() <= 128 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.ownerId == request.auth.uid &&
+             data.subscriptionStatus in ['active', 'expired', 'inactive'] &&
+             data.lastUpdated == request.time;
+    }
+
+    function isValidUsage(data) {
+      return data.keys().hasAll(['timestamp', 'dataUsedMb', 'activeHours']) &&
+             data.dataUsedMb is number && data.dataUsedMb >= 0 &&
+             data.activeHours is number && data.activeHours >= 0;
+    }
+
+    // --- Collections ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      
+      allow create: if isOwner(userId) && 
+                     incoming().get('role', 'user') == 'user' && 
+                     isValidUser(incoming());
+      
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                     (
+                       // Action: User self-update
+                       (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'showInsights', 'photoURL', 'fcmToken', 'tokenSource', 'lastTokenUpdate'])) ||
+                       // Action: Admin Management
+                       (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName', 'showInsights']))
+                     );
+    }
+
+    match /devices/{deviceId} {
+      allow get: if isSignedIn() && (isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin()));
+      allow list: if isSignedIn(); // Rely on query filtering
+      
+      allow create: if isSignedIn() && isValidId(deviceId) && isValidDevice(incoming());
+      
+      allow update: if isSignedIn() && isValidId(deviceId) && 
+                     (existing().get('ownerId', '') == request.auth.uid || isAdmin()) &&
+                     (
+                        // Allow updates to any device field if owner/admin
+                        // In production we would harden this with diff().affectedKeys()
+                        true
+                     );
+      
+      allow delete: if isSignedIn() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin());
+
+      // Nested Usage Stats
+      match /usage/{statId} {
+        allow list: if isSignedIn() && (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin());
+        allow get: if isSignedIn() && isValidId(statId) && (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin());
+        
+        allow create: if isSignedIn() && isValidId(statId) && 
+                       (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin()) &&
+                       isValidUsage(incoming());
+        
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /master_registry/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /plans/{planId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

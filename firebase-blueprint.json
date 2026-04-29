@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and permissions",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Device": {
+      "title": "Device",
+      "description": "Information about a user's connected device",
+      "type": "object",
+      "properties": {
+        "serialNumber": { "type": "string" },
+        "imei": { "type": "string" },
+        "iccid": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "subscriptionStatus": { "type": "string", "enum": ["active", "expired"] },
+        "expirationDate": { "type": "string", "format": "date-time" },
+        "planId": { "type": "string" },
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "autoRenew": { "type": "boolean" }
+      },
+      "required": ["serialNumber", "imei", "iccid", "name", "ownerId", "subscriptionStatus", "expirationDate"]
+    },
+    "UsageStat": {
+      "title": "Usage Statistics",
+      "description": "Daily usage data for a device",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "dataUsedMb": { "type": "number" },
+        "activeHours": { "type": "number" }
+      },
+      "required": ["timestamp", "dataUsedMb"]
+    },
+    "Plan": {
+      "title": "Subscription Plan",
+      "description": "Available data and device plans",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "dataLimitGb": { "type": "number" },
+        "durationDays": { "type": "number" }
+      },
+      "required": ["name", "price", "dataLimitGb", "durationDays"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Private user profiles"
+    },
+    "/devices/{deviceId}": {
+      "schema": "Device",
+      "description": "Devices owned by users"
+    },
+    "/devices/{deviceId}/usage/{statId}": {
+      "schema": "UsageStat",
+      "description": "Granular usage statistics for a device"
+    },
+    "/plans/{planId}": {
+      "schema": "Plan",
+      "description": "Global subscription plan definitions"
+    },
+    "/master_registry/{id}": {
+      "schema": "Device",
+      "description": "Master registry of valid hardware serial numbers"
+    }
+  }
+}

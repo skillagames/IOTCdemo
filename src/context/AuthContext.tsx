@@ -1,0 +1,109 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { doc, getDoc, getDocFromServer, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
+import { handleFirestoreError, OperationType } from '../lib/utils';
+import { notificationService } from '../services/notificationService';
+
+interface AuthContextType {
+  user: User | null;
+  profile: any | null;
+  loading: boolean;
+  isAdmin: boolean;
+  refreshProfile: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  loading: true,
+  isAdmin: false,
+  refreshProfile: async () => {},
+});
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async (uid: string) => {
+    const path = `users/${uid}`;
+    try {
+      const userDoc = await getDocFromServer(doc(db, 'users', uid));
+      let currentProfileData = null;
+
+      if (userDoc.exists()) {
+        currentProfileData = userDoc.data();
+        setProfile(currentProfileData);
+      } else {
+        // Create initial profile if it doesn't exist
+        const initialProfile = {
+          uid: uid,
+          email: auth.currentUser?.email || '',
+          role: 'user',
+          createdAt: serverTimestamp(),
+          showInsights: true,
+        };
+        await setDoc(doc(db, 'users', uid), initialProfile);
+        currentProfileData = initialProfile;
+        setProfile(initialProfile);
+      }
+
+      // HOUSEKEEPING: Sync any native tokens captured before login
+      const pendingToken = localStorage.getItem('pending_native_token');
+      if (pendingToken) {
+        const { updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'users', uid), { 
+          fcmToken: pendingToken,
+          tokenSource: 'native_bridge_sync'
+        });
+        localStorage.removeItem('pending_native_token');
+        console.log('[AuthContext] Synced pending native token to user profile.');
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.uid);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        setUser(user);
+        if (user) {
+          await fetchProfile(user.uid);
+          notificationService.checkDeviceExpirations(user.uid);
+        } else {
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error("Error synchronizing profile:", error);
+      } finally {
+        // Enforce a small delay (2.5 seconds) to ensure native Capacitor plugins and configurations
+        // have fully synchronized on the first launch before dismissing the sync screen.
+        setTimeout(() => setLoading(false), 2500);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      isAdmin: profile?.role === 'admin',
+      refreshProfile 
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
