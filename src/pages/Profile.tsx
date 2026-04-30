@@ -149,7 +149,7 @@ const Profile: React.FC = () => {
               title: capTitle || 'Local Test',
               body: capNotifMsg || 'Test',
               id: Math.floor(Math.random() * 2147483647), // Capacitor IDs must be 32-bit signed integers (max 2147483647)
-              channelId: 'primary_notifications_v3',
+              channelId: 'primary_notifications_v4',
               vibration: true,
               smallIcon: 'ic_stat_notification',
               schedule: { at: new Date(Date.now() + 1000) }, // Schedule 1s to allow app to go to background
@@ -294,7 +294,7 @@ const Profile: React.FC = () => {
                      <div className="p-3 bg-sky-500/10 border border-sky-500/20 rounded-[16px]">
                        <div className="flex items-center justify-between mb-2 px-1">
                          <span className="text-[7px] font-black uppercase tracking-widest text-sky-400/60">Active Pipeline</span>
-                         <span className="text-[7px] font-mono text-sky-500/80 bg-sky-500/10 px-2 py-0.5 rounded">ch: primary_notifications_v3</span>
+                         <span className="text-[7px] font-mono text-sky-500/80 bg-sky-500/10 px-2 py-0.5 rounded">ch: primary_notifications_v4</span>
                        </div>
                        <input 
                          value={capTitle}

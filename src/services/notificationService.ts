@@ -14,7 +14,7 @@ class NotificationService {
   constructor() {}
 
   public async initializeChannels() {
-    const channelId = 'primary_notifications_v3';
+    const channelId = 'primary_notifications_v4';
     
     try {
       const w = window as any;
@@ -47,7 +47,7 @@ class NotificationService {
             title: options.title, 
             body: options.body, 
             id: Math.floor(Math.random() * 2147483647),
-            channelId: 'primary_notifications_v3',
+            channelId: 'primary_notifications_v4',
             vibration: true,
             smallIcon: 'ic_stat_notification',
             schedule: { at: new Date(Date.now() + 100) } // Slight delay to ensure processing
