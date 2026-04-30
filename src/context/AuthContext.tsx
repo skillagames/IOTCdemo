@@ -72,6 +72,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    const handleFcmToken = async (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const token = customEvent.detail;
+      if (auth.currentUser) {
+        const { updateDoc } = await import('firebase/firestore');
+        try {
+          await updateDoc(doc(db, 'users', auth.currentUser.uid), { 
+            fcmToken: token,
+            tokenSource: 'native_bridge_sync_event'
+          });
+          localStorage.removeItem('pending_native_token');
+        } catch (error) {
+          console.error('[AuthContext] Failed to save token on event:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('fcm_token_ready', handleFcmToken);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         setUser(user);
@@ -90,7 +109,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      window.removeEventListener('fcm_token_ready', handleFcmToken);
+    };
   }, []);
 
   return (

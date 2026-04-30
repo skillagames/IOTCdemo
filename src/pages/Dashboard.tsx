@@ -315,9 +315,9 @@ const Dashboard: React.FC = () => {
                  </div>
 
                  {/* Recent Activity Timeline */}
-                 <div className="relative overflow-hidden rounded-[32px] border border-white/60 bg-gradient-to-br from-blue-50/40 via-white/40 to-emerald-50/20 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 flex flex-col">
-                    <div className="absolute -top-12 -right-6 h-32 w-32 rounded-full bg-blue-300/10 blur-3xl" />
-                    <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald-300/10 blur-3xl" />
+                 <div className="relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-sm p-6 flex flex-col">
+                    <div className="absolute -top-12 -right-6 h-32 w-32 rounded-full bg-blue-50/50" />
+                    <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald-50/50" />
                     
                     <div className="flex items-center justify-between mb-5 relative z-10">
                        <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ const Dashboard: React.FC = () => {
 const LogItem = ({ icon: Icon, title, desc, time, color }: { icon: any, title: string, desc: string, time: string, color: 'blue' | 'emerald' | 'red' }) => (
   <div className="group relative flex gap-4">
      <div className={cn(
-        "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/80 backdrop-blur-sm transition-colors group-hover:border-slate-200/60 shadow-sm",
+        "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-white transition-colors group-hover:border-slate-200/60 shadow-sm",
         color === 'blue' && "text-blue-500",
         color === 'emerald' && "text-emerald-500",
         color === 'red' && "text-red-500"

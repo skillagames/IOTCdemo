@@ -2,6 +2,7 @@ import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/fire
 import { db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/utils';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 export interface NotificationOptions {
   title: string;
@@ -20,7 +21,7 @@ class NotificationService {
       const w = window as any;
       // Only execute if we are on a native platform where channels matter (Android)
       if (w.Capacitor?.isNativePlatform()) {
-        await LocalNotifications.createChannel({
+        const channelConfig = {
           id: channelId,
           name: 'Primary Notifications',
           description: 'General notifications',
@@ -28,12 +29,60 @@ class NotificationService {
           visibility: 1, // VISIBILITY_PUBLIC
           vibration: true,
           sound: 'default'
-        });
+        };
+
+        // Initialize Local notification channel
+        await LocalNotifications.createChannel(channelConfig);
+        
+        // Initialize Push notification channel (for Firebase FCM)
+        await PushNotifications.createChannel(channelConfig);
         
         console.log(`[NotificationService] Channel ${channelId} initialized successfully`);
+
+        // Request Push Notification permissions and register
+        await this.setupPushNotifications();
       }
     } catch (e) {
       console.error('[NotificationService] Failed to create notification channel:', e);
+    }
+  }
+
+  private async setupPushNotifications() {
+    try {
+      let permStatus = await PushNotifications.checkPermissions();
+
+      if (permStatus.receive === 'prompt') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+
+      if (permStatus.receive !== 'granted') {
+        console.warn('User denied push notification permissions');
+        return;
+      }
+
+      await PushNotifications.register();
+
+      // Listen for registration code to get the FCM token
+      PushNotifications.addListener('registration', (token) => {
+        console.log('Push registration success, token: ' + token.value);
+        localStorage.setItem('pending_native_token', token.value);
+        window.dispatchEvent(new CustomEvent('fcm_token_ready', { detail: token.value }));
+      });
+
+      PushNotifications.addListener('registrationError', (error: any) => {
+        console.error('Error on registration: ' + JSON.stringify(error));
+      });
+
+      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        console.log('Push received: ', notification);
+      });
+
+      PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+        console.log('Push action performed: ', notification);
+      });
+
+    } catch (e) {
+      console.error('Error setting up push notifications:', e);
     }
   }
 

@@ -286,6 +286,22 @@ export const deviceService = {
         iccid: "89777777777777777773",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 120),
+      },
+      {
+        name: "Backup Router B2",
+        serialNumber: "SN-99112-B2",
+        imei: "123456789012345",
+        iccid: "89123456789012345678",
+        subscriptionStatus: "inactive",
+        expirationDate: addDays(new Date(), 60),
+      },
+      {
+        name: "Legacy Terminal T1",
+        serialNumber: "SN-11223-T1",
+        imei: "987654321098765",
+        iccid: "89987654321098765432",
+        subscriptionStatus: "inactive",
+        expirationDate: addDays(new Date(), -10),
       }
     ];
 
