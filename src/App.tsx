@@ -1,5 +1,6 @@
-import React, { useEffect, ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect, ReactNode, useRef } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -80,6 +81,70 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
   );
 };
 
+const HardwareBackButtonManager = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locationRef = useRef(location);
+  const [toastVisible, setToastVisible] = React.useState(false);
+
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
+
+  useEffect(() => {
+    let lastTimeBackPress = 0;
+    const timePeriodToExit = 2000;
+
+    const installListener = async () => {
+      const w = window as any;
+      if (w.Capacitor?.isNativePlatform()) {
+        const listener = await CapacitorApp.addListener('backButton', () => {
+          const path = locationRef.current.pathname;
+          
+          if (path === '/' || path === '/login') {
+            if (new Date().getTime() - lastTimeBackPress < timePeriodToExit) {
+              CapacitorApp.exitApp();
+            } else {
+              lastTimeBackPress = new Date().getTime();
+              setToastVisible(true);
+              setTimeout(() => setToastVisible(false), 2000);
+            }
+          } else if (path.startsWith('/devices/') && path !== '/devices') {
+            navigate('/devices');
+          } else {
+            navigate('/');
+          }
+        });
+        return listener;
+      }
+      return null;
+    };
+
+    let listenerPromise = installListener();
+
+    return () => {
+      listenerPromise.then(l => {
+        if (l) l.remove();
+      });
+    };
+  }, [navigate]);
+
+  return (
+    <AnimatePresence>
+      {toastVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          exit={{ opacity: 0, y: 50, x: '-50%' }}
+          className="fixed bottom-24 left-1/2 z-[100] whitespace-nowrap rounded-full bg-slate-900/90 px-4 py-2 text-[11px] font-medium text-white shadow-lg backdrop-blur-md"
+        >
+          Press back again to exit
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
@@ -88,6 +153,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <HardwareBackButtonManager />
         <div className="min-h-screen bg-bg-main font-sans text-slate-800">
           <Routes>
             <Route path="/login" element={<Login />} />

@@ -72,6 +72,14 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
     auth.signOut();
   };
 
+  const handleBack = () => {
+    if (location.pathname.startsWith('/devices/') && location.pathname !== '/devices') {
+      navigate('/devices');
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col pb-20">
       {/* Header */}
@@ -80,7 +88,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
           <div className="flex items-center">
             {showBack && (
               <button 
-                onClick={() => navigate(-1)}
+                onClick={handleBack}
                 className="rounded-full p-2 hover:bg-slate-100"
               >
                 <ChevronLeft className="h-6 w-6 text-slate-600" />
