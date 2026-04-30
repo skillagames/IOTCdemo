@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, getDocFromServer, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/utils';
 import { notificationService } from '../services/notificationService';
@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = async (uid: string) => {
     const path = `users/${uid}`;
     try {
-      const userDoc = await getDocFromServer(doc(db, 'users', uid));
+      const userDoc = await getDoc(doc(db, 'users', uid));
       let currentProfileData = null;
 
       if (userDoc.exists()) {
