@@ -103,9 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error("Error synchronizing profile:", error);
       } finally {
-        // Enforce a small delay (2.5 seconds) to ensure native Capacitor plugins and configurations
-        // have fully synchronized on the first launch before dismissing the sync screen.
-        setTimeout(() => setLoading(false), 2500);
+        setLoading(false);
       }
     });
 
