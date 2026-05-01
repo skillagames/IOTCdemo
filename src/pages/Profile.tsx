@@ -335,21 +335,74 @@ const Profile: React.FC = () => {
                     <span className="text-[10px] font-black uppercase tracking-widest">Clear Device Pool</span>
                   </button>
 
-                  {/* Designer Tools Section */}
-                  <div className="mt-8 border-t border-slate-700/50 pt-4">
-                     <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-fuchsia-400/90 mb-2 flex items-center justify-between">
-                       <span>Designer Assets</span>
-                       <Edit3 className="h-3.5 w-3.5" />
-                     </h4>
-                     <p className="text-[8px] text-slate-400 font-medium mb-3 leading-relaxed">
-                       Export optimized assets for production build pipelines (Android/iOS).
-                     </p>
+                  {/* --- Firebase Cloud Messaging Section --- */}
+                  <div className="mt-6 border-t border-slate-700/50 pt-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-400/90 mb-2 flex items-center justify-between">
+                      <span>Remote FCM Configuration</span>
+                      <Activity className="h-3.5 w-3.5 text-emerald-400" />
+                    </h4>
+                    <p className="text-[8px] text-slate-400 font-medium mb-3 leading-relaxed">
+                      Registration status for remote Push Notifications via Firebase.
+                    </p>
+                    
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-[16px] space-y-3">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400/60">Status</span>
+                        {profile?.fcmToken ? (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1"><CheckCircle2 className="h-2 w-2" /> Active</span>
+                        ) : (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-orange-400 flex items-center gap-1"><AlertTriangle className="h-2 w-2" /> Pending / Denied</span>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <span className="px-1 text-[7px] font-black uppercase tracking-widest text-slate-500">Device Token</span>
+                        {profile?.fcmToken ? (
+                           <>
+                             <div className="bg-black/40 p-2 rounded-lg border border-white/5 break-all">
+                               <code className="text-[8px] text-slate-300 font-mono">{profile.fcmToken}</code>
+                             </div>
+                             <button 
+                               onClick={() => {
+                                 navigator.clipboard.writeText(profile.fcmToken!);
+                                 alert('FCM Token copied to clipboard! To test, go to your Firebase Console > Engage > Cloud Messaging, create a new campaign, and send a test message using this token.');
+                               }}
+                               className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 text-emerald-400 hover:bg-emerald-500/30 transition-all border border-emerald-500/20"
+                             >
+                                <span className="text-[8px] font-black uppercase tracking-widest">Copy Token for Firebase Console</span>
+                             </button>
+                             <p className="px-1 mt-1 text-[7px] font-medium text-slate-400/80 leading-relaxed text-center">
+                               (Frontend apps cannot securely send remote push notifications to themselves. Use the token in your Firebase Console to trigger a test delivery.)
+                             </p>
+                           </>
+                        ) : (
+                          <div className="bg-black/40 p-2 rounded-lg border border-red-500/10">
+                            <span className="text-[8px] text-red-400/80 font-medium">No token. Check if Push permissions are allowed or if the registration failed.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-                     <div className="p-4 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[20px] space-y-3">
-                        <div className="flex items-center justify-between px-1">
-                           <span className="text-[7px] font-black uppercase tracking-widest text-fuchsia-400/60">Android Vector Drawable</span>
-                           <span className="text-[7px] font-mono text-fuchsia-500/80 bg-fuchsia-500/10 px-2 py-0.5 rounded">ic_stat_notification.xml</span>
-                        </div>
+                  {/* Designer Tools Section */}
+                  <details className="mt-8 group [&_summary::-webkit-details-marker]:hidden">
+                    <summary className="list-none outline-none cursor-pointer border-t border-slate-700/50 pt-4 pb-2 transition-opacity hover:opacity-80">
+                       <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-fuchsia-400/90 flex items-center justify-between">
+                         <span>Designer Assets</span>
+                         <Edit3 className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                       </h4>
+                    </summary>
+                    
+                    <div className="mt-1 pb-2">
+                       <p className="text-[8px] text-slate-400 font-medium mb-3 leading-relaxed">
+                         Export optimized assets for production build pipelines (Android/iOS).
+                       </p>
+
+                       <div className="p-4 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[20px] space-y-3">
+                          <div className="flex items-center justify-between px-1">
+                             <span className="text-[7px] font-black uppercase tracking-widest text-fuchsia-400/60">Android Vector Drawable</span>
+                             <span className="text-[7px] font-mono text-fuchsia-500/80 bg-fuchsia-500/10 px-2 py-0.5 rounded">ic_stat_notification.xml</span>
+                          </div>
                         
                         {/* Visual Preview */}
                         <div className="flex flex-col items-center justify-center p-6 bg-black/60 rounded-xl border border-white/5 relative group">
@@ -486,8 +539,9 @@ const Profile: React.FC = () => {
                         </button>
                      </div>
                   </div>
+                  </div>
+                  </details>
                </div>
-            </div>
             </motion.div>
           )}
         </AnimatePresence>
