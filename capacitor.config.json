@@ -1,0 +1,11 @@
+{
+  "appId": "com.example.app",
+  "appName": "react-example",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
