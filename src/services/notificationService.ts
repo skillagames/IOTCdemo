@@ -21,7 +21,7 @@ class NotificationService {
       const w = window as any;
       // Only execute if we are on a native platform where channels matter (Android)
       if (w.Capacitor?.isNativePlatform()) {
-        const channelConfig = {
+        const channelConfig: any = {
           id: channelId,
           name: 'Primary Notifications',
           description: 'General notifications',
@@ -97,7 +97,6 @@ class NotificationService {
             body: options.body, 
             id: Math.floor(Math.random() * 2147483647),
             channelId: 'primary_notifications_v4',
-            vibration: true,
             smallIcon: 'ic_stat_notification',
             schedule: { at: new Date(Date.now() + 100) } // Slight delay to ensure processing
           }] 
