@@ -1,6 +1,7 @@
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -23,8 +24,7 @@ const SplashScreenHider = () => {
     if (!loading) {
       setTimeout(async () => {
         try {
-          const w = window as any;
-          if (w.Capacitor?.isNativePlatform()) {
+          if (Capacitor.isNativePlatform()) {
             await SplashScreen.hide();
           }
         } catch (e) {
