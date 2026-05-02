@@ -1,6 +1,7 @@
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SplashScreen } from '@capacitor/splash-screen';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -12,6 +13,29 @@ import Profile from './pages/Profile';
 import Alerts from './pages/Alerts';
 import { motion, AnimatePresence } from 'motion/react';
 import { notificationService } from './services/notificationService';
+
+// Component to handle hiding the native splash screen after the app fully initializes
+const SplashScreenHider = () => {
+  const { loading } = useAuth();
+
+  useEffect(() => {
+    // Only hide the splash screen once auth state is resolved and cache/data is loaded
+    if (!loading) {
+      setTimeout(async () => {
+        try {
+          const w = window as any;
+          if (w.Capacitor?.isNativePlatform()) {
+            await SplashScreen.hide();
+          }
+        } catch (e) {
+          console.warn('Splash screen hide failed (expected in web):', e);
+        }
+      }, 300); // 300ms buffer to allow React render to commit visually
+    }
+  }, [loading]);
+
+  return null;
+};
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -87,6 +111,7 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <SplashScreenHider />
       <BrowserRouter>
         <div className="min-h-screen bg-bg-main font-sans text-slate-800">
           <Routes>
