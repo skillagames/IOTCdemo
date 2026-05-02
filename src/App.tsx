@@ -1,8 +1,6 @@
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Capacitor } from '@capacitor/core';
-import { SplashScreen } from '@capacitor/splash-screen';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -14,43 +12,6 @@ import Profile from './pages/Profile';
 import Alerts from './pages/Alerts';
 import { motion, AnimatePresence } from 'motion/react';
 import { notificationService } from './services/notificationService';
-
-// Component to handle hiding the native splash screen after the app fully initializes
-const SplashScreenHider = () => {
-  const { loading } = useAuth();
-
-  useEffect(() => {
-    const initAppAndHideSplash = async () => {
-      // 1. Await our cache/database hydration and native plugins
-      try {
-        // Wait for notification channels to be initialized if not already
-        await notificationService.initializeChannels();
-        
-        // Wait a tiny bit extra for Capacitor to fully populate its native bridge memory map
-        // This solves the issue where native settings/cache aren't loaded immediately on first fresh startup
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (err) {
-        console.warn('Startup cache/plugin initialization issue:', err);
-      }
-
-      // 2. Hide the splash screen ONLY when all logic says so
-      try {
-        if (Capacitor.isNativePlatform()) {
-          await SplashScreen.hide();
-        }
-      } catch (e) {
-        console.warn('Splash screen hide failed (expected in web):', e);
-      }
-    };
-
-    // Only proceed when Auth state and profile data cache have fully resolved
-    if (!loading) {
-      initAppAndHideSplash();
-    }
-  }, [loading]);
-
-  return null;
-};
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -120,9 +81,12 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
 };
 
 export default function App() {
+  useEffect(() => {
+    notificationService.initializeChannels();
+  }, []);
+
   return (
     <AuthProvider>
-      <SplashScreenHider />
       <BrowserRouter>
         <div className="min-h-screen bg-bg-main font-sans text-slate-800">
           <Routes>

@@ -103,9 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error("Error synchronizing profile:", error);
       } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 2000); // 2 second delay to allow native plugins & localStorage to fully initialize
+        setLoading(false);
       }
     });
 

@@ -150,6 +150,7 @@ const Profile: React.FC = () => {
               body: capNotifMsg || 'Test',
               id: Math.floor(Math.random() * 2147483647), // Capacitor IDs must be 32-bit signed integers (max 2147483647)
               channelId: 'primary_notifications_v4',
+              vibration: true,
               smallIcon: 'ic_stat_notification',
               schedule: { at: new Date(Date.now() + 1000) }, // Schedule 1s to allow app to go to background
             }
