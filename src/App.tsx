@@ -20,17 +20,32 @@ const SplashScreenHider = () => {
   const { loading } = useAuth();
 
   useEffect(() => {
-    // Only hide the splash screen once auth state is resolved and cache/data is loaded
-    if (!loading) {
-      setTimeout(async () => {
-        try {
-          if (Capacitor.isNativePlatform()) {
-            await SplashScreen.hide();
-          }
-        } catch (e) {
-          console.warn('Splash screen hide failed (expected in web):', e);
+    const initAppAndHideSplash = async () => {
+      // 1. Await our cache/database hydration and native plugins
+      try {
+        // Wait for notification channels to be initialized if not already
+        await notificationService.initializeChannels();
+        
+        // Wait a tiny bit extra for Capacitor to fully populate its native bridge memory map
+        // This solves the issue where native settings/cache aren't loaded immediately on first fresh startup
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (err) {
+        console.warn('Startup cache/plugin initialization issue:', err);
+      }
+
+      // 2. Hide the splash screen ONLY when all logic says so
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await SplashScreen.hide();
         }
-      }, 300); // 300ms buffer to allow React render to commit visually
+      } catch (e) {
+        console.warn('Splash screen hide failed (expected in web):', e);
+      }
+    };
+
+    // Only proceed when Auth state and profile data cache have fully resolved
+    if (!loading) {
+      initAppAndHideSplash();
     }
   }, [loading]);
 
@@ -105,10 +120,6 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
 };
 
 export default function App() {
-  useEffect(() => {
-    notificationService.initializeChannels();
-  }, []);
-
   return (
     <AuthProvider>
       <SplashScreenHider />
