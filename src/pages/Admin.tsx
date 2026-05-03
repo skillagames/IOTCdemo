@@ -90,8 +90,8 @@ const Admin: React.FC = () => {
                 <AdminItem 
                   key={device.id} 
                   icon={Smartphone} 
-                  title={device.name} 
-                  subtitle={`SN: ${device.serialNumber}`}
+                  title={device.description || device.name} 
+                  subtitle={`SN: ${device.serialNumber}${device.description ? ` - ${device.name}` : ''}`}
                   badge={device.subscriptionStatus}
                   badgeColor={device.subscriptionStatus === 'active' ? 'emerald' : 'orange'}
                 />

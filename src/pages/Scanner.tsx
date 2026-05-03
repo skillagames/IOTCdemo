@@ -267,7 +267,7 @@ const Scanner: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-center space-y-4">
+                  <div className="flex-1 flex flex-col justify-center space-y-4 overflow-y-auto py-2">
                     <div className="space-y-1.5">
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Friendly Name</label>
                       <input 
@@ -275,6 +275,17 @@ const Scanner: React.FC = () => {
                         value={deviceInfo?.name}
                         onChange={(e) => setDeviceInfo({ ...deviceInfo, name: e.target.value })}
                         className="w-full rounded-[16px] bg-slate-50 border-2 border-slate-50 p-3 text-xs font-bold text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Description (Optional)</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. CCTV Camera, Network Switch"
+                        value={deviceInfo?.description || ''}
+                        onChange={(e) => setDeviceInfo({ ...deviceInfo, description: e.target.value })}
+                        className="w-full rounded-[16px] bg-slate-50 border-2 border-slate-50 p-3 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                       />
                     </div>
 

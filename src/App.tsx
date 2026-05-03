@@ -27,14 +27,14 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
           className="absolute inset-0 rounded-full border-[3px] border-slate-100 border-t-slate-900"
         />
         
-        {/* Pulsing Inner Circle with IoT */}
+        {/* Pulsing Inner Circle with IO */}
         <motion.div 
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
           className="relative flex h-14 w-14 items-center justify-center bg-black rounded-full shadow-2xl shadow-slate-900/40"
         >
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-          <span className="font-black text-lg text-white tracking-tighter">IoT</span>
+          <span className="font-black text-xl text-white tracking-tight">IO</span>
         </motion.div>
       </div>
 

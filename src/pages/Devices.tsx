@@ -161,7 +161,10 @@ const DeviceItem = ({ device, onClick }: { device: Device; onClick: () => void }
       </div>
       
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-base font-black tracking-tight text-slate-900 line-clamp-1">{device.name}</h4>
+        <h4 className="text-base font-black tracking-tight text-slate-900 line-clamp-1">{device.description || device.name}</h4>
+        {device.description && (
+          <p className="mt-0.5 text-xs font-medium text-slate-500 line-clamp-1">{device.name}</p>
+        )}
         <div className="mt-0.5 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-tight text-slate-400">
           <span>SN:{device.serialNumber.slice(-6)}</span>
           <span className="h-1 w-1 rounded-full bg-slate-200" />

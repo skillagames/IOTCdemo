@@ -232,6 +232,7 @@ class NotificationService {
             type: 'inactive',
             deviceId: doc.id,
             deviceName: device.name,
+            deviceDescription: device.description,
             date: new Date(device.lastUpdated?.seconds * 1000 || Date.now()),
             message: 'Needs active subscription'
           });
@@ -255,6 +256,7 @@ class NotificationService {
             type: 'expired',
             deviceId: doc.id,
             deviceName: device.name,
+            deviceDescription: device.description,
             date: expirationDate,
             message: 'Subscription has expired'
           });
@@ -264,6 +266,7 @@ class NotificationService {
             type: 'expiring',
             deviceId: doc.id,
             deviceName: device.name,
+            deviceDescription: device.description,
             date: expirationDate,
             message: 'Subscription expiring soon'
           });

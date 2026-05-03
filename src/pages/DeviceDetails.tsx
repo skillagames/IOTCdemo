@@ -139,8 +139,11 @@ const DeviceDetails: React.FC = () => {
           
           <div className="relative flex items-start">
             <div className="flex-1 space-y-1 pr-14">
-              <h2 className="text-lg font-black text-slate-900 leading-none break-words">{device.name}</h2>
-              <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-black text-slate-900 leading-none break-words">{device.description || device.name}</h2>
+              {device.description && (
+                <p className="text-sm font-medium text-slate-500 leading-tight">{device.name}</p>
+              )}
+              <div className="flex flex-col gap-1 mt-2">
                 <div className="flex items-center gap-2">
                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">SN: {device.serialNumber}</p>
                 </div>

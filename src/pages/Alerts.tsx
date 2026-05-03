@@ -137,11 +137,14 @@ const Alerts: React.FC = () => {
 
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-black tracking-tight text-slate-900">{alert.deviceName}</h4>
+                        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1 break-all w-[180px]">{alert.deviceDescription || alert.deviceName}</h4>
                         <span className="text-[8px] font-black uppercase text-slate-400">
                           {alert.type === 'expired' ? 'CRITICAL' : alert.type === 'inactive' ? 'PENDING' : 'WARNING'}
                         </span>
                       </div>
+                      {alert.deviceDescription && (
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-tight mt-0.5">{alert.deviceName}</p>
+                      )}
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mt-0.5">{alert.message}</p>
                       <p className="text-[9px] font-medium text-slate-400 mt-1 italic">
                         {alert.type === 'expired' ? 'Expired on ' : alert.type === 'inactive' ? 'Waiting for activation since ' : 'Expiring on '}

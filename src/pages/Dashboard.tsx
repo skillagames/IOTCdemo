@@ -383,7 +383,10 @@ const DeviceCard = ({ device, onClick }: { device: Device; onClick: () => void }
       </div>
       
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1">{device.name}</h4>
+        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1">{device.description || device.name}</h4>
+        {device.description && (
+          <p className="mt-0.5 text-[10px] font-medium text-slate-500 line-clamp-1">{device.name}</p>
+        )}
         <div className="flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight">
           <span className={cn(
              isExpired ? "text-red-500" : isInactive ? "text-slate-400" : "text-emerald-500"
@@ -407,7 +410,9 @@ const StatCard = ({ label, value, color, icon: Icon, isActive, onClick }: { labe
         ? (color === 'emerald' ? "border-emerald-200 bg-emerald-50 shadow-emerald-500/5" : 
            color === 'red' ? "border-red-200 bg-red-50 shadow-red-500/5" :
            "border-slate-200 bg-slate-50 shadow-none") 
-        : "border-slate-100 bg-white"
+        : (color === 'emerald' ? "border-emerald-100 bg-emerald-50/50" : 
+           color === 'red' ? "border-red-100 bg-red-50/50" :
+           "border-slate-100 bg-slate-50/50")
     )}
   >
     <div className={cn(

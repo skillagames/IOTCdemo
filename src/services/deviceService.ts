@@ -23,6 +23,7 @@ export interface Device {
   imei: string;
   iccid: string;
   name: string;
+  description?: string;
   ownerId: string;
   subscriptionStatus: 'active' | 'expired' | 'inactive';
   expirationDate: any;
@@ -240,64 +241,72 @@ export const deviceService = {
   async seedDevices(userId: string) {
     const dummyDevices = [
       {
-        name: "Pro Route X1",
-        serialNumber: "SN-98234-X1",
+        name: "DS-2CD2043G0-I",
+        description: "CCTV Camera",
+        serialNumber: "C20210815AAWR12345",
         imei: "358762109845321",
         iccid: "89014103211185101234",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 15),
       },
       {
-        name: "Compact Terminal V2",
-        serialNumber: "SN-12093-V2",
+        name: "DS-7204HQHI-K1",
+        description: "DVR/NVR",
+        serialNumber: "C20210920BBWR98765",
         imei: "862341056789123",
         iccid: "89441012345678901234",
         subscriptionStatus: "expired",
         expirationDate: addDays(new Date(), -5),
       },
       {
-        name: "Enterprise Hub G5",
-        serialNumber: "SN-55667-G5",
+        name: "DS-KV8113-WME1",
+        description: "Video Intercom",
+        serialNumber: "C20211010CCWR54321",
         imei: "447788992233110",
         iccid: "89852033445566778899",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 45),
       },
       {
-        name: "Field Monitor M1",
-        serialNumber: "SN-00231-M1",
+        name: "DS-K1T341AM",
+        description: "Access Control Terminal",
+        serialNumber: "C20211105DDWR11223",
         imei: "112233445566778",
         iccid: "89000000000000000001",
         subscriptionStatus: "expired",
         expirationDate: addDays(new Date(), -12),
       },
       {
-        name: "Remote Sensor A9",
-        serialNumber: "SN-44321-A9",
+        name: "iDS-2CD7146G0-IZS",
+        description: "AI CCTV Camera",
+        serialNumber: "C20211201EEWR88990",
         imei: "998877665544332",
         iccid: "89999999999999999992",
         subscriptionStatus: "expired",
         expirationDate: addDays(new Date(), -30),
       },
       {
-        name: "Gateway Core Z5",
-        serialNumber: "SN-77889-Z5",
+        name: "DS-3E0105P-E",
+        description: "Network Switch",
+        serialNumber: "C20220115FFWR55667",
         imei: "554433221100998",
         iccid: "89777777777777777773",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 120),
       },
       {
-        name: "Backup Router B2",
-        serialNumber: "SN-99112-B2",
+        name: "DS-PWA96-M-WE",
+        description: "Alarm Panel",
+        serialNumber: "C20220228GGWR33445",
         imei: "123456789012345",
         iccid: "89123456789012345678",
         subscriptionStatus: "inactive",
         expirationDate: addDays(new Date(), 60),
       },
       {
-        name: "Legacy Terminal T1",
-        serialNumber: "SN-11223-T1",
+        name: "DS-2DE2A404IW-DE3",
+        description: "PTZ Camera",
+        serialNumber: "C20220310HHWR77889",
         imei: "987654321098765",
         iccid: "89987654321098765432",
         subscriptionStatus: "inactive",
@@ -306,13 +315,16 @@ export const deviceService = {
     ];
 
     for (const device of dummyDevices) {
+      const batch = writeBatch(db);
       const newDevice = {
         ...device,
         ownerId: userId,
         planId: "standard-plan",
         lastUpdated: serverTimestamp(),
       };
-      const docRef = await addDoc(collection(db, 'devices'), newDevice);
+      
+      const docRef = doc(collection(db, 'devices'));
+      batch.set(docRef, newDevice);
       
       // Seed 14 days of usage stats for each device
       const usageCollection = collection(db, 'devices', docRef.id, 'usage');
@@ -320,12 +332,14 @@ export const deviceService = {
         const date = new Date();
         date.setDate(date.getDate() - (13 - i));
         
-        await addDoc(usageCollection, {
+        const usageRef = doc(usageCollection);
+        batch.set(usageRef, {
           timestamp: date,
           dataUsedMb: Math.floor(Math.random() * 450) + 50,
           activeHours: Math.floor(Math.random() * 12) + 2
         });
       }
+      await batch.commit();
     }
   },
 
@@ -333,9 +347,8 @@ export const deviceService = {
     const q = query(collection(db, 'devices'), where('ownerId', '==', userId));
     const querySnapshot = await getDocs(q);
     
-    const batch = writeBatch(db);
-    
     for (const docSnap of querySnapshot.docs) {
+      const batch = writeBatch(db);
       // Also delete usage subcollection for each device
       const usageQ = await getDocs(collection(db, 'devices', docSnap.id, 'usage'));
       usageQ.docs.forEach(usageDoc => {
@@ -343,8 +356,7 @@ export const deviceService = {
       });
       
       batch.delete(docSnap.ref);
+      await batch.commit();
     }
-    
-    await batch.commit();
   }
 };

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/utils';
 import { notificationService } from '../services/notificationService';
@@ -104,6 +105,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error synchronizing profile:", error);
       } finally {
         setLoading(false);
+        // Add a delay to ensure React commits the DOM and Safari applies CSS env(safe-area-inset)
+        setTimeout(async () => {
+          try {
+            await SplashScreen.hide();
+          } catch (e) {
+            console.warn('Failed to hide splash screen', e);
+          }
+        }, 500);
       }
     });
 

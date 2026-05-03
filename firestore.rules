@@ -81,30 +81,35 @@ service cloud.firestore {
     }
 
     match /devices/{deviceId} {
-      allow get: if isSignedIn() && (isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin()));
-      allow list: if isSignedIn(); // Rely on query filtering
+      allow get: if isSignedIn() && isValidId(deviceId) && existing().get('ownerId', '') == request.auth.uid;
+      allow get: if isAdmin() && isValidId(deviceId);
+      
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow list: if isAdmin();
       
       allow create: if isSignedIn() && isValidId(deviceId) && isValidDevice(incoming());
       
-      allow update: if isSignedIn() && isValidId(deviceId) && 
-                     (existing().get('ownerId', '') == request.auth.uid || isAdmin()) &&
-                     (
-                        // Allow updates to any device field if owner/admin
-                        // In production we would harden this with diff().affectedKeys()
-                        true
-                     );
+      allow update: if isSignedIn() && isValidId(deviceId) && existing().get('ownerId', '') == request.auth.uid;
+      allow update: if isAdmin() && isValidId(deviceId);
       
-      allow delete: if isSignedIn() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(deviceId) && existing().get('ownerId', '') == request.auth.uid;
+      allow delete: if isAdmin() && isValidId(deviceId);
 
       // Nested Usage Stats
       match /usage/{statId} {
-        allow list: if isSignedIn() && (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin());
-        allow get: if isSignedIn() && isValidId(statId) && (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin());
+        allow list: if isSignedIn() && exists(/databases/$(database)/documents/devices/$(deviceId)) && get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid;
+        allow list: if isAdmin();
+        
+        allow get: if isSignedIn() && isValidId(statId) && exists(/databases/$(database)/documents/devices/$(deviceId)) && get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid;
+        allow get: if isAdmin() && isValidId(statId);
         
         allow create: if isSignedIn() && isValidId(statId) && 
-                       (get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid || isAdmin()) &&
+                       existsAfter(/databases/$(database)/documents/devices/$(deviceId)) &&
+                       getAfter(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid &&
                        isValidUsage(incoming());
+        allow create: if isAdmin() && isValidId(statId) && isValidUsage(incoming());
         
+        allow delete: if isSignedIn() && exists(/databases/$(database)/documents/devices/$(deviceId)) && get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerId == request.auth.uid;
         allow delete: if isAdmin();
       }
     }
