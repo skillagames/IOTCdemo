@@ -73,7 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col pb-[calc(5rem+env(safe-area-inset-bottom))]">
+    <div className="flex min-h-screen flex-col pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
@@ -144,13 +144,13 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 px-safe">
         {children}
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2 pb-safe">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             

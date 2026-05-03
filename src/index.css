@@ -20,9 +20,3 @@
   --color-primary: #3b82f6;
   --color-bg-main: #f4f7fa;
 }
-
-@layer base {
-  html, body, #root {
-    @apply h-full bg-bg-main;
-  }
-}

@@ -1,9 +1,6 @@
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { StatusBar } from '@capacitor/status-bar';
-import { SplashScreen } from '@capacitor/splash-screen';
-import { Capacitor } from '@capacitor/core';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -86,23 +83,6 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
 export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
-    
-    // Capacitor setup for first launch
-    const setupDevice = async () => {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          // Just hide the splash screen since overlaysWebView is handled reliably in capacitor.config.json
-          // A short delay ensures any native rendering stabilizes vertically before we reveal
-          setTimeout(async () => {
-             await SplashScreen.hide();
-          }, 150);
-        } catch (error) {
-          console.error('Error during native setup:', error);
-        }
-      }
-    };
-    setupDevice();
-    
   }, []);
 
   return (

@@ -2,13 +2,10 @@
   "appId": "com.example.app",
   "appName": "react-example",
   "webDir": "dist",
+  "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
-      "launchAutoHide": false,
-      "launchShowDuration": 2000
-    },
-    "StatusBar": {
-      "overlaysWebView": false
+      "launchShowDuration": 0
     }
   }
 }
