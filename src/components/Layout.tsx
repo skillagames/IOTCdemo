@@ -75,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   return (
     <div className="flex min-h-screen flex-col pb-[calc(5rem+env(safe-area-inset-bottom))]">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
           <div className="flex items-center">
             {showBack && (
@@ -144,7 +144,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6">
         {children}
       </main>
 

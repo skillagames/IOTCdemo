@@ -87,13 +87,12 @@ export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
     
-    // Capacitor edge-to-edge layout fix for first launch
+    // Capacitor setup for first launch
     const setupDevice = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Set overlay false BEFORE hiding splash screen to fix layout shift
-          await StatusBar.setOverlaysWebView({ overlay: false });
-          // Ensure webview layout has time to apply the top pad fix before hiding splashscreen
+          // Just hide the splash screen since overlaysWebView is handled reliably in capacitor.config.json
+          // A short delay ensures any native rendering stabilizes vertically before we reveal
           setTimeout(async () => {
              await SplashScreen.hide();
           }, 150);
