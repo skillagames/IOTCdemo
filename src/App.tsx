@@ -93,10 +93,10 @@ export default function App() {
         try {
           // Set overlay false BEFORE hiding splash screen to fix layout shift
           await StatusBar.setOverlaysWebView({ overlay: false });
-          // Ensure webview layout has time to apply the top pad fix
-          requestAnimationFrame(async () => {
+          // Ensure webview layout has time to apply the top pad fix before hiding splashscreen
+          setTimeout(async () => {
              await SplashScreen.hide();
-          });
+          }, 150);
         } catch (error) {
           console.error('Error during native setup:', error);
         }
