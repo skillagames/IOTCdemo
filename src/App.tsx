@@ -1,6 +1,9 @@
 import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { StatusBar } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -83,6 +86,24 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
 export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
+    
+    // Capacitor edge-to-edge layout fix for first launch
+    const setupDevice = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Set overlay false BEFORE hiding splash screen to fix layout shift
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          // Ensure webview layout has time to apply the top pad fix
+          requestAnimationFrame(async () => {
+             await SplashScreen.hide();
+          });
+        } catch (error) {
+          console.error('Error during native setup:', error);
+        }
+      }
+    };
+    setupDevice();
+    
   }, []);
 
   return (
