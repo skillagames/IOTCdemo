@@ -105,14 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error synchronizing profile:", error);
       } finally {
         setLoading(false);
-        // Add a delay to ensure React commits the DOM and Safari applies CSS env(safe-area-inset)
-        setTimeout(async () => {
-          try {
-            await SplashScreen.hide();
-          } catch (e) {
-            console.warn('Failed to hide splash screen', e);
-          }
-        }, 500);
+        try {
+          await SplashScreen.hide();
+        } catch (e) {
+          console.warn('Failed to hide splash screen', e);
+        }
       }
     });
 

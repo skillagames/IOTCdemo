@@ -11,6 +11,7 @@ import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import Alerts from './pages/Alerts';
 import { motion, AnimatePresence } from 'motion/react';
+import { App as CapacitorApp } from '@capacitor/app';
 import { notificationService } from './services/notificationService';
 
 // Protected Route Component
@@ -83,6 +84,38 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
 export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
+
+    // Handle Hardware Back Button
+    let lastBack = 0;
+    const setupBackButton = async () => {
+      try {
+        const sub = await CapacitorApp.addListener('backButton', () => {
+          const now = Date.now();
+          // If on the home page or root, prompt to exit
+          if (window.location.pathname === '/' || window.location.pathname === '/login') {
+            if (now - lastBack < 2000) {
+              CapacitorApp.exitApp();
+            } else {
+              lastBack = now;
+              console.log("Press back again to exit");
+            }
+          } else {
+            // Default behavior: go back in history
+            window.history.back();
+          }
+        });
+        return sub;
+      } catch (e) {
+        console.warn('Native back button listener failed to initialize', e);
+        return null;
+      }
+    };
+
+    const backSubPromise = setupBackButton();
+
+    return () => {
+      backSubPromise.then(sub => sub.remove());
+    };
   }, []);
 
   return (
