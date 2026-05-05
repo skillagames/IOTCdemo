@@ -170,10 +170,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let resolved = false;
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      resolved = true;
       setAppReady(true);
     });
+
+    // 🔥 Fallback: if Firebase is already ready instantly
+    setTimeout(() => {
+      if (resolved) return;
+      setAppReady(true);
+    }, 0);
 
     return () => unsubscribe();
   }, []);
