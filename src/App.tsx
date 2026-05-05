@@ -156,9 +156,6 @@ export default function App() {
 
   useEffect(() => {
     const init = async () => {
-      // wait for layout to stabilize
-      await new Promise(r => setTimeout(r, 100));
-
       try {
         await SplashScreen.hide();
       } catch (e) {
@@ -177,12 +174,6 @@ export default function App() {
       resolved = true;
       setAppReady(true);
     });
-
-    // 🔥 Fallback: if Firebase is already ready instantly
-    setTimeout(() => {
-      if (resolved) return;
-      setAppReady(true);
-    }, 0);
 
     return () => unsubscribe();
   }, []);
