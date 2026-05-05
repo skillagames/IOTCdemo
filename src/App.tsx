@@ -182,6 +182,16 @@ export default function App() {
     return <LoadingScreen />;
   }
 
+  if (!user) {
+    return (
+      <AuthProvider>
+        <BrowserRouter>
+          <Login />
+        </BrowserRouter>
+      </AuthProvider>
+    );
+  }
+
   return (
     <AuthProvider>
       <BrowserRouter>
