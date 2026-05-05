@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import Alerts from './pages/Alerts';
 import { motion, AnimatePresence } from 'motion/react';
 import { App as CapacitorApp } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { notificationService } from './services/notificationService';
 
 // Protected Route Component
@@ -116,6 +117,21 @@ export default function App() {
     return () => {
       backSubPromise.then(sub => sub.remove());
     };
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      // wait for layout to stabilize
+      await new Promise(r => setTimeout(r, 100));
+
+      try {
+        await SplashScreen.hide();
+      } catch (e) {
+        console.warn('Failed to hide splash screen', e);
+      }
+    };
+
+    init();
   }, []);
 
   return (
