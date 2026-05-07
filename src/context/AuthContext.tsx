@@ -87,8 +87,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       });
 
+      // Force Firebase network initialization before releasing the app UI
+      const networkPromise = new Promise(async (resolve) => {
+        // Fallback timeout in case the network is completely unresponsive but not purely offline
+        const timeoutId = setTimeout(() => resolve(true), 5000); 
+        
+        try {
+          const { getDocFromServer, doc } = await import('firebase/firestore');
+          // This will attempt an actual network call, forcing Firebase to initialize its WebSocket/polling
+          await getDocFromServer(doc(db, '_internal_', 'connection_warmup'));
+        } catch (e) {
+          // We don't care if it fails due to permissions or missing doc, just that the network was hit.
+        } finally {
+          clearTimeout(timeoutId);
+          resolve(true);
+        }
+      });
+
       try {
         const { user } = await authPromise;
+        // MUST wait for the network handshake to actually finish
+        await networkPromise;
         
         setUser(user);
         if (user) {
@@ -109,22 +128,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsInitialized(true);
         (window as any).__AUTH_INITIALIZED__ = true;
         
-        // Remove the static pre-loader from index.html with a fade to show the app
-        const preLoader = document.getElementById('app-pre-loader');
-        if (preLoader) {
-          preLoader.style.transition = 'opacity 0.4s ease';
-          preLoader.style.opacity = '0';
-          setTimeout(() => preLoader.remove(), 400);
-        }
-        
-        // Hide native splash screen after bridge is ready and UI has settled
-        setTimeout(async () => {
-          try {
-            await SplashScreen.hide();
-          } catch (e) {
-            console.warn('Failed to hide splash screen', e);
-          }
-        }, 300);
+        // Wait for React to render and paint the UI
+        setTimeout(() => {
+          // Remove static pre-loader instantly, the native splash screen is still covering us
+          const preLoader = document.getElementById('app-pre-loader');
+          if (preLoader) preLoader.remove();
+          
+          // Now hide the native splash screen to reveal the fully rendered React app
+          setTimeout(async () => {
+            try {
+              await SplashScreen.hide();
+            } catch (e) {
+              console.warn('Failed to hide splash screen', e);
+            }
+          }, 100);
+        }, 100);
       }
     };
 
