@@ -131,25 +131,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       try {
-        const { user } = await authPromise;
-        // MUST wait for the network handshake to actually finish
-        await networkPromise;
+        const startTime = Date.now();
+        // Wait for auth and network handshake in parallel
+        const [{ user }] = await Promise.all([authPromise, networkPromise]);
         
         setUser(user);
         if (user) {
-          await fetchProfile(user.uid);
-          notificationService.checkDeviceExpirations(user.uid);
+          try {
+            await fetchProfile(user.uid);
+            notificationService.checkDeviceExpirations(user.uid);
+          } catch (profileErr) {
+            console.error("Profile sync error:", profileErr);
+          }
         } else {
           setProfile(null);
         }
-      } catch (error) {
-        console.error("Initialization error:", error);
-      } finally {
+
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime < MIN_INIT_TIME) {
           await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
         }
-
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
         if (isFirstLaunch) {
           localStorage.setItem(APP_INIT_KEY, 'true');
         }
@@ -158,21 +162,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsInitialized(true);
         (window as any).__AUTH_INITIALIZED__ = true;
         
-        // Wait for React to render and paint the UI
-        setTimeout(() => {
-          // Remove static pre-loader instantly, the native splash screen is still covering us
-          const preLoader = document.getElementById('app-pre-loader');
-          if (preLoader) preLoader.remove();
-          
-          // Now hide the native splash screen to reveal the fully rendered React app
-          setTimeout(async () => {
-            try {
-              await SplashScreen.hide();
-            } catch (e) {
-              console.warn('Failed to hide splash screen', e);
-            }
-          }, 100);
-        }, 100);
+        // Restore scrolling
+        document.documentElement.style.overflow = 'auto';
+        document.body.style.overflow = 'auto';
+        
+        // Final UI cleanup
+        const preLoader = document.getElementById('app-pre-loader');
+        if (preLoader) preLoader.remove();
+        
+        setTimeout(async () => {
+          try {
+            await SplashScreen.hide();
+          } catch (e) {
+            console.warn('Splash hide failed', e);
+          }
+        }, 150);
       }
     };
 
