@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { SplashScreen } from '@capacitor/splash-screen';
-import LoadingScreen from '../components/LoadingScreen';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/utils';
 import { notificationService } from '../services/notificationService';
@@ -27,7 +26,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchProfile = async (uid: string) => {
     const path = `users/${uid}`;
@@ -75,116 +73,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const startInitialization = async () => {
-      const APP_INIT_KEY = 'app_sync_v5';
-      const isFirstLaunch = !localStorage.getItem(APP_INIT_KEY);
-      const MIN_INIT_TIME = isFirstLaunch ? 4500 : 1000; 
-
-      // Use a promise to track the first auth state emission
-      const authPromise = new Promise<{ user: User | null }>((resolve) => {
-        // On first launch, we wait a bit longer before accepting a 'null' auth state 
-        // to give the persistence layer time to initialize.
-        let resolved = false;
-        const unsub = onAuthStateChanged(auth, (user) => {
-          if (!resolved) {
-            if (user || !isFirstLaunch) {
-              resolved = true;
-              unsub(); 
-              resolve({ user });
-            }
-          }
-        });
-
-        // Fallback for first launch if still null after 3s
-        if (isFirstLaunch) {
-          setTimeout(() => {
-            if (!resolved) {
-              resolved = true;
-              unsub();
-              resolve({ user: auth.currentUser });
-            }
-          }, 3000);
-        }
-      });
-
-      // Force Firebase network initialization before releasing the app UI
-      const networkPromise = new Promise(async (resolve) => {
-        const timeoutId = setTimeout(() => resolve(true), isFirstLaunch ? 8000 : 3000); 
-        
-        let attempts = 0;
-        const maxAttempts = isFirstLaunch ? 3 : 1;
-        let connected = false;
-
-        while (attempts < maxAttempts && !connected) {
-          try {
-            const { getDocFromServer, doc } = await import('firebase/firestore');
-            await getDocFromServer(doc(db, '_internal_', 'connection_warmup'));
-            connected = true;
-          } catch (e) {
-            attempts++;
-            if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 1000));
-          }
-        }
-        
-        clearTimeout(timeoutId);
-        resolve(true);
-      });
-
-      try {
-        const startTime = Date.now();
-        // Wait for auth and network handshake in parallel
-        const [{ user }] = await Promise.all([authPromise, networkPromise]);
-        
-        setUser(user);
-        if (user) {
-          try {
-            await fetchProfile(user.uid);
-            notificationService.checkDeviceExpirations(user.uid);
-          } catch (profileErr) {
-            console.error("Profile sync error:", profileErr);
-          }
-        } else {
-          setProfile(null);
-        }
-
-        const elapsedTime = Date.now() - startTime;
-        if (elapsedTime < MIN_INIT_TIME) {
-          await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
-        }
-      } catch (error) {
-        console.error("Initialization error:", error);
-      } finally {
-        if (isFirstLaunch) {
-          localStorage.setItem(APP_INIT_KEY, 'true');
-        }
-
-        setLoading(false);
-        setIsInitialized(true);
-        (window as any).__AUTH_INITIALIZED__ = true;
-        
-        // Restore scrolling
-        document.documentElement.style.overflow = 'auto';
-        document.body.style.overflow = 'auto';
-        
-        // Final UI cleanup
-        const preLoader = document.getElementById('app-pre-loader');
-        if (preLoader) preLoader.remove();
-        
-        setTimeout(async () => {
-          try {
-            await SplashScreen.hide();
-          } catch (e) {
-            console.warn('Splash hide failed', e);
-          }
-        }, 150);
-      }
-    };
-
     const handleFcmToken = async (e: Event) => {
       const customEvent = e as CustomEvent;
       const token = customEvent.detail;
       if (auth.currentUser) {
-        const { updateDoc, doc } = await import('firebase/firestore');
+        const { updateDoc } = await import('firebase/firestore');
         try {
           await updateDoc(doc(db, 'users', auth.currentUser.uid), { 
             fcmToken: token,
@@ -198,19 +91,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     window.addEventListener('fcm_token_ready', handleFcmToken);
-    
-    // Start the robust initialization
-    startInitialization();
 
-    // Still use a long-lived listener for state changes throughout the session
-    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
-      // Use ref-like check or just wait for the first init to complete
-      if (typeof window !== 'undefined' && (window as any).__AUTH_INITIALIZED__) {
-        setUser(newUser);
-        if (newUser) {
-          await fetchProfile(newUser.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        setUser(user);
+        if (user) {
+          await fetchProfile(user.uid);
+          notificationService.checkDeviceExpirations(user.uid);
         } else {
           setProfile(null);
+        }
+      } catch (error) {
+        console.error("Error synchronizing profile:", error);
+      } finally {
+        setLoading(false);
+        try {
+          await SplashScreen.hide();
+        } catch (e) {
+          console.warn('Failed to hide splash screen', e);
         }
       }
     });
@@ -219,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unsubscribe();
       window.removeEventListener('fcm_token_ready', handleFcmToken);
     };
-  }, []); // Empty dependency array to run only once
+  }, []);
 
   return (
     <AuthContext.Provider value={{ 
@@ -229,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAdmin: profile?.role === 'admin',
       refreshProfile 
     }}>
-      {!isInitialized ? <LoadingScreen /> : children}
+      {children}
     </AuthContext.Provider>
   );
 };

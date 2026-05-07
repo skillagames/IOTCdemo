@@ -5,11 +5,8 @@
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 10000,
-      "launchAutoHide": false,
-      "backgroundColor": "#ffffff",
-      "androidSplashResourceName": "splash",
-      "showSpinner": true
+      "launchShowDuration": 2000,
+      "launchAutoHide": false
     }
   }
 }
