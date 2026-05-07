@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const startInitialization = async () => {
       const startTime = Date.now();
-      const MIN_INIT_TIME = 2000; // 2 seconds to allow WebView to stabilize
+      const MIN_INIT_TIME = 3000; // 3 seconds to allow WebView and network to stabilize
 
       // Use a promise to track the first auth state emission
       const authPromise = new Promise<{ user: User | null }>((resolve) => {
@@ -116,12 +116,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setLoading(false);
         setIsInitialized(true);
+        (window as any).__AUTH_INITIALIZED__ = true;
         
-        try {
-          await SplashScreen.hide();
-        } catch (e) {
-          console.warn('Failed to hide splash screen', e);
-        }
+        // Wait another 300ms to ensure React rendering batch completes and paints
+        setTimeout(async () => {
+          try {
+            await SplashScreen.hide();
+          } catch (e) {
+            console.warn('Failed to hide splash screen', e);
+          }
+        }, 300);
       }
     };
 
@@ -149,7 +153,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Still use a long-lived listener for state changes throughout the session
     const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
-      if (isInitialized) {
+      // Use ref-like check or just wait for the first init to complete
+      if (typeof window !== 'undefined' && (window as any).__AUTH_INITIALIZED__) {
         setUser(newUser);
         if (newUser) {
           await fetchProfile(newUser.uid);
@@ -163,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unsubscribe();
       window.removeEventListener('fcm_token_ready', handleFcmToken);
     };
-  }, [isInitialized]);
+  }, []); // Empty dependency array to run only once
 
   return (
     <AuthContext.Provider value={{ 
