@@ -75,11 +75,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    const startInitialization = async () => {
+      const startTime = Date.now();
+      const MIN_INIT_TIME = 2000; // 2 seconds to allow WebView to stabilize
+
+      // Use a promise to track the first auth state emission
+      const authPromise = new Promise<{ user: User | null }>((resolve) => {
+        const unsub = onAuthStateChanged(auth, (user) => {
+          unsub(); // Only need the first emission
+          resolve({ user });
+        });
+      });
+
+      // Attempt a network handshake to "prime" the connection
+      const { getDocFromServer, doc } = await import('firebase/firestore');
+      const networkHandshakePromise = getDocFromServer(doc(db, '_internal_', 'warmup')).catch(() => {
+        // We don't care if it fails (e.g. 403), just that it tried to talk to the server
+        return null;
+      });
+
+      try {
+        // Wait for both the auth state and at least a network attempt
+        const [{ user }] = await Promise.all([authPromise, networkHandshakePromise]);
+        
+        setUser(user);
+        if (user) {
+          await fetchProfile(user.uid);
+          notificationService.checkDeviceExpirations(user.uid);
+        } else {
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
+        // Ensure we've waited at least MIN_INIT_TIME
+        const elapsedTime = Date.now() - startTime;
+        if (elapsedTime < MIN_INIT_TIME) {
+          await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
+        }
+
+        setLoading(false);
+        setIsInitialized(true);
+        
+        try {
+          await SplashScreen.hide();
+        } catch (e) {
+          console.warn('Failed to hide splash screen', e);
+        }
+      }
+    };
+
     const handleFcmToken = async (e: Event) => {
       const customEvent = e as CustomEvent;
       const token = customEvent.detail;
       if (auth.currentUser) {
-        const { updateDoc } = await import('firebase/firestore');
+        const { updateDoc, doc } = await import('firebase/firestore');
         try {
           await updateDoc(doc(db, 'users', auth.currentUser.uid), { 
             fcmToken: token,
@@ -93,25 +143,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     window.addEventListener('fcm_token_ready', handleFcmToken);
+    
+    // Start the robust initialization
+    startInitialization();
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        setUser(user);
-        if (user) {
-          await fetchProfile(user.uid);
-          notificationService.checkDeviceExpirations(user.uid);
+    // Still use a long-lived listener for state changes throughout the session
+    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
+      if (isInitialized) {
+        setUser(newUser);
+        if (newUser) {
+          await fetchProfile(newUser.uid);
         } else {
           setProfile(null);
-        }
-      } catch (error) {
-        console.error("Error synchronizing profile:", error);
-      } finally {
-        setLoading(false);
-        setIsInitialized(true);
-        try {
-          await SplashScreen.hide();
-        } catch (e) {
-          console.warn('Failed to hide splash screen', e);
         }
       }
     });
@@ -120,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unsubscribe();
       window.removeEventListener('fcm_token_ready', handleFcmToken);
     };
-  }, []);
+  }, [isInitialized]);
 
   return (
     <AuthContext.Provider value={{ 
