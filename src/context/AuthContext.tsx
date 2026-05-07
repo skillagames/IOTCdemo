@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { SplashScreen } from '@capacitor/splash-screen';
+import LoadingScreen from '../components/LoadingScreen';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/utils';
 import { notificationService } from '../services/notificationService';
@@ -26,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchProfile = async (uid: string) => {
     const path = `users/${uid}`;
@@ -105,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error synchronizing profile:", error);
       } finally {
         setLoading(false);
+        setIsInitialized(true);
         try {
           await SplashScreen.hide();
         } catch (e) {
@@ -127,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAdmin: profile?.role === 'admin',
       refreshProfile 
     }}>
-      {children}
+      {!isInitialized ? <LoadingScreen /> : children}
     </AuthContext.Provider>
   );
 };
