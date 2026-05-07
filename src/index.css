@@ -20,3 +20,8 @@
   --color-primary: #3b82f6;
   --color-bg-main: #f4f7fa;
 }
+
+body {
+  background-color: #f4f7fa; /* Matches color-bg-main */
+  color: #1e293b; /* Matches slate-800 */
+}

@@ -1,12 +1,13 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeFirestore, doc, getDocFromServer, persistentLocalCache } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 export const app = initializeApp(firebaseConfig);
 
 // Using initializeFirestore with experimentalForceLongPolling to bypass potential gRPC-web issues
 export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache(),
   experimentalForceLongPolling: true,
 }, (firebaseConfig as any).firestoreDatabaseId);
 
@@ -28,4 +29,16 @@ async function testConnection() {
     }
   }
 }
-testConnection();
+
+export async function initializeFirebaseConnection() {
+  const isFirstLaunchDone = localStorage.getItem('is_first_launch_done');
+  
+  if (!isFirstLaunchDone) {
+    console.log("First launch detected: Forcing Firebase network sync before rendering...");
+    await testConnection();
+    localStorage.setItem('is_first_launch_done', 'true');
+  } else {
+    // On subsequent launches, just test connection in the background so it is fast
+    testConnection().catch(console.error);
+  }
+}
