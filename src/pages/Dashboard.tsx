@@ -49,15 +49,14 @@ const Dashboard: React.FC = () => {
         setIsSticky(false);
       }
 
-      // Hide sticky header when reaching insights section
-      if (insightsRef.current) {
-        const insightsTop = insightsRef.current.offsetTop;
-        // Adjusted threshold to trigger hide before header overlaps insights
-        if (window.scrollY + 140 > insightsTop) {
-          setIsStickyHidden(true);
-        } else {
-          setIsStickyHidden(false);
-        }
+      // Hide sticky header when reaching insights section or bottom of page
+      const insightsTop = insightsRef.current?.offsetTop ?? Infinity;
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 20;
+
+      if (window.scrollY + 140 > insightsTop || isAtBottom) {
+        setIsStickyHidden(true);
+      } else {
+        setIsStickyHidden(false);
       }
     };
 
