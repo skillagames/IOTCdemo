@@ -77,29 +77,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const startInitialization = async () => {
       const startTime = Date.now();
-      const isFirstLaunch = !localStorage.getItem('app_initialized_v2');
-      const MIN_INIT_TIME = isFirstLaunch ? 4000 : 500; // 4s for first launch, 0.5s otherwise
+      const MIN_INIT_TIME = 800; // Allow 0.8s for React to mount and start first paint
 
       // Use a promise to track the first auth state emission
       const authPromise = new Promise<{ user: User | null }>((resolve) => {
         const unsub = onAuthStateChanged(auth, (user) => {
-          unsub(); // Only need the first emission
+          unsub(); 
           resolve({ user });
         });
       });
 
-      // Attempt a network handshake to "prime" the connection ONLY on first launch
-      let networkHandshakePromise = Promise.resolve(null);
-      if (isFirstLaunch) {
-        const { getDocFromServer, doc } = await import('firebase/firestore');
-        networkHandshakePromise = getDocFromServer(doc(db, '_internal_', 'warmup')).catch(() => {
-          return null;
-        });
-      }
-
       try {
-        // Wait for both the auth state and at least a network attempt (only on first launch)
-        const [{ user }] = await Promise.all([authPromise, networkHandshakePromise]);
+        const { user } = await authPromise;
         
         setUser(user);
         if (user) {
@@ -111,29 +100,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
-        // Ensure we've waited at least MIN_INIT_TIME
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime < MIN_INIT_TIME) {
           await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
-        }
-
-        if (isFirstLaunch) {
-          localStorage.setItem('app_initialized_v2', 'true');
         }
 
         setLoading(false);
         setIsInitialized(true);
         (window as any).__AUTH_INITIALIZED__ = true;
         
-        // Remove the static pre-loader from index.html
+        // Remove the static pre-loader from index.html with a fade to show the app
         const preLoader = document.getElementById('app-pre-loader');
         if (preLoader) {
-          preLoader.style.transition = 'opacity 0.5s ease';
+          preLoader.style.transition = 'opacity 0.4s ease';
           preLoader.style.opacity = '0';
-          setTimeout(() => preLoader.remove(), 500);
+          setTimeout(() => preLoader.remove(), 400);
         }
         
-        // Wait another 300ms to ensure React rendering batch completes and paints
+        // Hide native splash screen after bridge is ready and UI has settled
         setTimeout(async () => {
           try {
             await SplashScreen.hide();
