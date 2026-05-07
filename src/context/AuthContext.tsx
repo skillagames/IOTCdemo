@@ -76,32 +76,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const startInitialization = async () => {
-      const startTime = Date.now();
-      const MIN_INIT_TIME = 800; // Allow 0.8s for React to mount and start first paint
+      const APP_INIT_KEY = 'app_sync_v5';
+      const isFirstLaunch = !localStorage.getItem(APP_INIT_KEY);
+      const MIN_INIT_TIME = isFirstLaunch ? 4500 : 1000; 
 
       // Use a promise to track the first auth state emission
       const authPromise = new Promise<{ user: User | null }>((resolve) => {
+        // On first launch, we wait a bit longer before accepting a 'null' auth state 
+        // to give the persistence layer time to initialize.
+        let resolved = false;
         const unsub = onAuthStateChanged(auth, (user) => {
-          unsub(); 
-          resolve({ user });
+          if (!resolved) {
+            if (user || !isFirstLaunch) {
+              resolved = true;
+              unsub(); 
+              resolve({ user });
+            }
+          }
         });
+
+        // Fallback for first launch if still null after 3s
+        if (isFirstLaunch) {
+          setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              unsub();
+              resolve({ user: auth.currentUser });
+            }
+          }, 3000);
+        }
       });
 
       // Force Firebase network initialization before releasing the app UI
       const networkPromise = new Promise(async (resolve) => {
-        // Fallback timeout in case the network is completely unresponsive but not purely offline
-        const timeoutId = setTimeout(() => resolve(true), 5000); 
+        const timeoutId = setTimeout(() => resolve(true), isFirstLaunch ? 8000 : 3000); 
         
-        try {
-          const { getDocFromServer, doc } = await import('firebase/firestore');
-          // This will attempt an actual network call, forcing Firebase to initialize its WebSocket/polling
-          await getDocFromServer(doc(db, '_internal_', 'connection_warmup'));
-        } catch (e) {
-          // We don't care if it fails due to permissions or missing doc, just that the network was hit.
-        } finally {
-          clearTimeout(timeoutId);
-          resolve(true);
+        let attempts = 0;
+        const maxAttempts = isFirstLaunch ? 3 : 1;
+        let connected = false;
+
+        while (attempts < maxAttempts && !connected) {
+          try {
+            const { getDocFromServer, doc } = await import('firebase/firestore');
+            await getDocFromServer(doc(db, '_internal_', 'connection_warmup'));
+            connected = true;
+          } catch (e) {
+            attempts++;
+            if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 1000));
+          }
         }
+        
+        clearTimeout(timeoutId);
+        resolve(true);
       });
 
       try {
@@ -122,6 +148,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime < MIN_INIT_TIME) {
           await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
+        }
+
+        if (isFirstLaunch) {
+          localStorage.setItem(APP_INIT_KEY, 'true');
         }
 
         setLoading(false);
