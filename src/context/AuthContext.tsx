@@ -105,11 +105,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error synchronizing profile:", error);
       } finally {
         setLoading(false);
-        try {
-          await SplashScreen.hide();
-        } catch (e) {
-          console.warn('Failed to hide splash screen', e);
-        }
+
+        // Wait for React/UI to paint before hiding splash
+        requestAnimationFrame(() => {
+          requestAnimationFrame(async () => {
+            try {
+              await SplashScreen.hide();
+            } catch (e) {
+              console.warn('Failed to hide splash screen', e);
+            }
+          });
+        });
       }
     });
 
