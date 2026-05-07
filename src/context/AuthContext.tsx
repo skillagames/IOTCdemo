@@ -77,7 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const startInitialization = async () => {
       const startTime = Date.now();
-      const MIN_INIT_TIME = 3000; // 3 seconds to allow WebView and network to stabilize
+      const isFirstLaunch = !localStorage.getItem('app_initialized_v2');
+      const MIN_INIT_TIME = isFirstLaunch ? 4000 : 500; // 4s for first launch, 0.5s otherwise
 
       // Use a promise to track the first auth state emission
       const authPromise = new Promise<{ user: User | null }>((resolve) => {
@@ -87,15 +88,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       });
 
-      // Attempt a network handshake to "prime" the connection
-      const { getDocFromServer, doc } = await import('firebase/firestore');
-      const networkHandshakePromise = getDocFromServer(doc(db, '_internal_', 'warmup')).catch(() => {
-        // We don't care if it fails (e.g. 403), just that it tried to talk to the server
-        return null;
-      });
+      // Attempt a network handshake to "prime" the connection ONLY on first launch
+      let networkHandshakePromise = Promise.resolve(null);
+      if (isFirstLaunch) {
+        const { getDocFromServer, doc } = await import('firebase/firestore');
+        networkHandshakePromise = getDocFromServer(doc(db, '_internal_', 'warmup')).catch(() => {
+          return null;
+        });
+      }
 
       try {
-        // Wait for both the auth state and at least a network attempt
+        // Wait for both the auth state and at least a network attempt (only on first launch)
         const [{ user }] = await Promise.all([authPromise, networkHandshakePromise]);
         
         setUser(user);
@@ -114,9 +117,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await new Promise(resolve => setTimeout(resolve, MIN_INIT_TIME - elapsedTime));
         }
 
+        if (isFirstLaunch) {
+          localStorage.setItem('app_initialized_v2', 'true');
+        }
+
         setLoading(false);
         setIsInitialized(true);
         (window as any).__AUTH_INITIALIZED__ = true;
+        
+        // Remove the static pre-loader from index.html
+        const preLoader = document.getElementById('app-pre-loader');
+        if (preLoader) {
+          preLoader.style.transition = 'opacity 0.5s ease';
+          preLoader.style.opacity = '0';
+          setTimeout(() => preLoader.remove(), 500);
+        }
         
         // Wait another 300ms to ensure React rendering batch completes and paints
         setTimeout(async () => {
