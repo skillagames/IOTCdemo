@@ -84,8 +84,6 @@ const DeviceDetails: React.FC = () => {
 
   const handleRenew = async () => {
     setIsRenewing(true);
-    // Simulate delay
-    await new Promise(r => setTimeout(r, 1500));
     try {
       await deviceService.renewSubscription(id!);
       await loadData();

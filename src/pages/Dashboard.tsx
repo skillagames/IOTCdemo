@@ -12,10 +12,8 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'active' | 'expired' | 'inactive' | null>(null);
   const [isSticky, setIsSticky] = useState(false);
-  const [isStickyHidden, setIsStickyHidden] = useState(false);
   const navigate = useNavigate();
   const statsRef = useRef<HTMLElement>(null);
-  const insightsRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -48,17 +46,6 @@ const Dashboard: React.FC = () => {
       } else {
         setIsSticky(false);
       }
-
-      // Hide sticky header when reaching insights section
-      if (insightsRef.current) {
-        const insightsTop = insightsRef.current.offsetTop;
-        // Adjusted threshold to trigger hide before header overlaps insights
-        if (window.scrollY + 140 > insightsTop) {
-          setIsStickyHidden(true);
-        } else {
-          setIsStickyHidden(false);
-        }
-      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -89,7 +76,7 @@ const Dashboard: React.FC = () => {
     : devices;
 
   return (
-    <div className="space-y-5 pb-0">
+    <div className="space-y-5 pb-10">
       {/* Hero Welcome Section - Compressed Sleek Header */}
       <section>
         <motion.div
@@ -159,10 +146,9 @@ const Dashboard: React.FC = () => {
       <section 
         ref={statsRef}
         className={cn(
-          "sticky top-[64px] z-20 pt-4 pb-2 -mt-2 transition-all duration-300 space-y-4",
-          isSticky ? "bg-bg-main/90 backdrop-blur-md" : "bg-transparent",
-          isStickyHidden && isSticky ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
-        )}>
+          "sticky top-[64px] z-20 py-2 transition-colors duration-200 space-y-4",
+        isSticky ? "bg-bg-main/90 backdrop-blur-md" : "bg-transparent"
+      )}>
         <div className="grid grid-cols-3 gap-2">
           <StatCard 
             label="ACTIVE" 
@@ -267,7 +253,7 @@ const Dashboard: React.FC = () => {
 
       {/* Cluster Insights Section */}
       {profile?.showInsights !== false && (
-        <section ref={insightsRef} className="space-y-4 pt-2">
+        <section className="space-y-4 pt-2">
            <div className="flex items-center justify-between pb-2">
               <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Cluster Insights</h2>
               <div className="flex h-1 w-12 rounded-full bg-slate-100 overflow-hidden">
