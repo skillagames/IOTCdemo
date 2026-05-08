@@ -158,8 +158,8 @@ const Dashboard: React.FC = () => {
       <section 
         ref={statsRef}
         className={cn(
-          "sticky top-[64px] z-20 pt-4 pb-2 -mt-2 transition-all duration-300 space-y-4",
-          isSticky ? "bg-bg-main/90 backdrop-blur-md" : "bg-transparent",
+          "sticky top-[64px] z-20 pt-4 -mt-2 transition-all duration-300 space-y-4",
+          isSticky ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent pb-10" : "bg-transparent pb-2",
           isStickyHidden && isSticky ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
         )}>
         <div className="grid grid-cols-3 gap-2">
@@ -212,13 +212,16 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* Natural List with Independent Scroll (conditional) */}
-      <section className="relative -mt-4">
+      <section className="relative -mt-8">
+        {filter && (
+          <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-bg-main to-transparent z-10 pointer-events-none" />
+        )}
         <div 
           ref={listRef} 
           className={cn(
-            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 transition-all duration-300",
+            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 transition-all duration-300 relative",
             filter 
-              ? (isSticky ? "h-[405px] overflow-y-auto" : "h-[405px] overflow-hidden") 
+              ? (isSticky ? "h-[405px] overflow-y-auto pt-6 pb-12" : "h-[405px] overflow-hidden pt-6") 
               : "h-auto overflow-visible"
           )}
         >
@@ -262,6 +265,9 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+        {filter && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-bg-main via-bg-main/80 to-transparent z-10 pointer-events-none" />
+        )}
       </section>
 
       {/* Cluster Insights Section */}
@@ -350,6 +356,18 @@ const Dashboard: React.FC = () => {
            </div>
         </section>
       )}
+
+      {/* Brand Partner Logo */}
+      <section className="flex flex-col items-center justify-center pt-2 pb-4">
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">Hardware Partner</p>
+          <img 
+            src="/hikvision.svg" 
+            alt="Hikvision Logo" 
+            className="h-5 w-auto object-contain"
+          />
+        </div>
+      </section>
     </div>
   );
 };

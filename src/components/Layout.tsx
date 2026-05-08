@@ -144,7 +144,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 px-safe">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-4 px-safe">
         {children}
       </main>
 

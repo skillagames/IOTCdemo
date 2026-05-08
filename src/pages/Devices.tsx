@@ -147,42 +147,42 @@ const DeviceItem = ({ device, onClick }: { device: Device; onClick: () => void }
     <button 
       onClick={onClick}
       className={cn(
-        "group relative flex w-full items-center gap-4 overflow-hidden rounded-[28px] bg-white p-2 pr-6 border transition-all active:scale-[0.98] shadow-sm",
+        "group relative flex w-full items-center gap-4 overflow-hidden rounded-[26px] bg-white p-2.5 pr-6 border transition-all active:scale-[0.98] shadow-sm",
         isExpired ? "border-red-100/50 active:border-red-500 active:shadow-red-500/5 md:hover:border-red-500 md:hover:shadow-red-500/5" : isInactive ? "border-slate-100 border-dashed opacity-80 active:border-slate-400 md:hover:border-slate-400" : "border-slate-100 active:border-emerald-500 active:shadow-xl active:shadow-emerald-500/5 md:hover:border-emerald-500 md:hover:shadow-xl md:hover:shadow-emerald-500/5"
       )}
     >
       <div className={cn(
-        "flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] transition-colors",
+        "flex h-15 w-15 shrink-0 items-center justify-center rounded-[20px] transition-colors",
         !isExpired && !isInactive && "bg-emerald-50 text-emerald-600 group-active:bg-emerald-500 group-active:text-white md:group-hover:bg-emerald-500 md:group-hover:text-white",
         isExpired && "bg-red-50 text-red-500 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
         isInactive && "bg-slate-50 text-slate-300 group-active:bg-slate-500 group-active:text-white md:group-hover:bg-slate-500 md:group-hover:text-white"
       )}>
-        <Smartphone className="h-7 w-7" />
+        <Smartphone className="h-6 w-6" />
       </div>
       
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-base font-black tracking-tight text-slate-900 line-clamp-1">{device.description || device.name}</h4>
+        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1 leading-tight">{device.description || device.name}</h4>
         {device.description && (
-          <p className="mt-0.5 text-xs font-medium text-slate-500 line-clamp-1">{device.name}</p>
+          <p className="text-[10px] font-black text-slate-500 line-clamp-1 uppercase tracking-tight leading-tight mt-1">{device.name}</p>
         )}
-        <div className="mt-0.5 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-tight text-slate-400">
+        <div className="mt-1.5 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-tight text-slate-400">
           <span>SN:{device.serialNumber.slice(-6)}</span>
-          <span className="h-1 w-1 rounded-full bg-slate-200" />
+          <span className="h-0.5 w-0.5 rounded-full bg-slate-200" />
           <span className={cn(
             isExpired ? "text-red-500" : isInactive ? "text-slate-400" : "text-emerald-500"
           )}>
-            {isExpired ? 'Expired' : isInactive ? 'Inactive' : 'Active'}
+            {isExpired ? 'Subscription Expired' : isInactive ? 'Inactive Node' : 'Active Channel'}
           </span>
         </div>
       </div >
 
       <div className={cn(
-        "h-8 w-8 flex items-center justify-center rounded-full bg-slate-50 transition-colors",
+        "h-7 w-7 flex items-center justify-center rounded-full bg-slate-50 transition-colors",
         !isExpired && !isInactive && "text-emerald-600 group-active:bg-emerald-500 group-active:text-white md:group-hover:bg-emerald-500 md:group-hover:text-white",
         isExpired && "text-red-500 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
         isInactive && "text-slate-300 group-active:bg-slate-500 group-active:text-white md:group-hover:bg-slate-500 md:group-hover:text-white"
       )}>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3.5 w-3.5" />
       </div>
     </button>
   );

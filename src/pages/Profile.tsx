@@ -170,7 +170,7 @@ const Profile: React.FC = () => {
   if (!profile) return null;
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-3 pb-1">
       {/* Compressed Header */}
       <header className="relative text-center pt-2">
         <button 
@@ -192,23 +192,23 @@ const Profile: React.FC = () => {
 
       {/* Optimized Info Grid */}
       <section className="grid grid-cols-2 gap-2">
-        <div className="flex items-center gap-3 rounded-[20px] border border-slate-100 bg-white p-2.5 shadow-sm">
-           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+        <div className="flex items-center gap-3 rounded-[20px] bg-blue-50/50 p-2.5 shadow-sm border border-blue-100/50">
+           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
               <Shield className="h-4 w-4" />
            </div>
            <div className="min-w-0">
-              <p className="text-[7px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">Identity</p>
-              <p className="font-bold text-slate-900 uppercase text-[10px] truncate">{profile.role}</p>
+              <p className="text-[8px] font-black uppercase tracking-widest text-blue-400 leading-none mb-1">Identity</p>
+              <p className="font-bold text-slate-900 uppercase text-[11px] truncate">{profile.role}</p>
            </div>
         </div>
 
-        <div className="flex items-center gap-3 rounded-[20px] border border-slate-100 bg-white p-2.5 shadow-sm">
-           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+        <div className="flex items-center gap-3 rounded-[20px] bg-indigo-50/50 p-2.5 shadow-sm border border-indigo-100/50">
+           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
               <Calendar className="h-4 w-4" />
            </div>
            <div className="min-w-0">
-              <p className="text-[7px] font-black uppercase tracking-widest text-slate-400 leading-none mb-0.5">Joined</p>
-              <p className="font-bold text-slate-900 text-[10px] truncate">
+              <p className="text-[8px] font-black uppercase tracking-widest text-indigo-400 leading-none mb-1">Joined</p>
+              <p className="font-bold text-slate-900 text-[11px] truncate">
                 {formatDate(profile?.createdAt, 'MMM dd, yy')}
               </p>
            </div>
@@ -548,13 +548,13 @@ const Profile: React.FC = () => {
       </section>
 
       {/* App Refresh & Version */}
-      <div className="flex flex-col gap-3 pb-2 pt-2">
+      <div className="flex flex-col gap-2 pb-1 pt-1">
          <button 
            onClick={() => {
              // Clear any cached flags without clearing valid tokens
              window.location.reload();
            }}
-           className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-blue-50 py-4 text-[10px] font-black uppercase tracking-widest text-blue-500 transition-all active:scale-95"
+           className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-blue-50 py-3 text-[10px] font-black uppercase tracking-widest text-blue-500 transition-all active:scale-95"
          >
            <RefreshCw className="h-3.5 w-3.5" />
            Reload Workspace
@@ -566,7 +566,7 @@ const Profile: React.FC = () => {
 
          <button 
            onClick={() => {}}
-           className="flex w-full items-center justify-center gap-2 rounded-[20px] border border-slate-100 bg-white py-4 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all active:scale-95"
+           className="flex w-full items-center justify-center gap-2 rounded-[20px] border border-slate-100 bg-white py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all active:scale-95"
          >
            <LifeBuoy className="h-3.5 w-3.5 text-primary" />
            Operational Support
@@ -576,14 +576,14 @@ const Profile: React.FC = () => {
       {/* Log Out Button */}
       <button 
         onClick={handleLogout}
-        className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-slate-50 py-4 text-[10px] font-black uppercase tracking-widest text-red-500 transition-all active:scale-95"
+        className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-slate-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 transition-all active:scale-95"
       >
         <LogOut className="h-3.5 w-3.5" />
         Terminate Session
       </button>
 
       {/* Footer Branding */}
-      <div className="text-center pt-2 space-y-0.5">
+      <div className="text-center pt-1 space-y-0.5">
         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-300">IoTConnect core v1.2.0-SIM</p>
         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-300 opacity-60">{appInfo.id}</p>
         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-300 opacity-60">Build Version: {appInfo.version}</p>
