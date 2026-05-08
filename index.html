@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <meta name="theme-color" content="#3b82f6" />
+    <meta name="theme-color" content="#ffffff" />
     <title>IoT Connect App</title>
     <style>
       html, body {
@@ -38,7 +38,11 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #ffffff; z-index: 9999;">
+        <div style="font-family: system-ui, -apple-system, sans-serif; font-weight: 900; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: #0f172a;">Synchronizing</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

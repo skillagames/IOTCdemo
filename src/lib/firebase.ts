@@ -21,8 +21,8 @@ async function testConnection(retries = 3) {
       console.log("Firebase Connected: Handshake successful.");
       return true;
     } catch (error) {
-      console.warn(`Firebase Connection attempt ${i + 1} failed:`, error);
-      if (i < retries - 1) await new Promise(r => setTimeout(r, 1000));
+      console.warn(`Firebase Connection attempt ${i + 1} failed: ${error}`);
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 500));
     }
   }
   return false;

@@ -79,7 +79,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let lastTimeBackPress = 0;
 
     const init = async () => {
-      // 1. Set up Auth Listener
+      // 1. Initialize Firebase connection (forced sync on first launch)
+      try {
+        const { initializeFirebaseConnection } = await import('../lib/firebase');
+        await initializeFirebaseConnection();
+      } catch (e) {
+        console.warn("Firebase initialization warning:", e);
+      }
+
+      // 2. Set up Auth Listener
       unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (!isMounted) return;
         
@@ -109,11 +117,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
           if (isMounted) {
             setLoading(false);
-            // Hide native splash screen ONLY after a short delay to ensure React UI is painted
-            // This prevents a brief black/white flash between the splash and your webapp
+            // Hide native splash screen ONLY after a short delay to ensure React UI is totally paints
+            // We use a longer 1000ms delay here to bridge the "first launch" gap
+            // This ensures that the white SyncScreen or Login screen is already rendering behind the splash.
+            console.log('[AuthContext] Loading finished. Hiding splash screen in 1000ms...');
             setTimeout(() => {
+              console.log('[AuthContext] Calling SplashScreen.hide()');
               SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
-            }, 300);
+            }, 1000);
           }
         }
       });
