@@ -130,6 +130,18 @@ const DeviceDetails: React.FC = () => {
 
   return (
     <div className="space-y-3">
+      {/* Brand Partner Logo */}
+      <section className="flex flex-col items-center justify-center pt-2 pb-4">
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">Hardware Partner</p>
+          <img 
+            src="/hikvision.svg" 
+            alt="Hikvision Logo" 
+            className="h-5 w-auto object-contain"
+          />
+        </div>
+      </section>
+
       {/* Header Card */}
       <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
          <div className={cn(
