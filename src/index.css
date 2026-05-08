@@ -21,6 +21,10 @@
   --color-bg-main: #f4f7fa;
 }
 
+html, body, #root {
+  height: 100dvh;
+}
+
 body {
   background-color: #f4f7fa; /* Matches color-bg-main */
   color: #1e293b; /* Matches slate-800 */
