@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (isMounted) {
             setLoading(false);
             // Hide native splash screen ONLY after a short delay to ensure React UI is painted
-            // We use a slightly longer delay here because this is the final hurdle
+            // This prevents a brief black/white flash between the splash and your webapp
             setTimeout(() => {
               SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
             }, 300);
@@ -130,7 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             App.exitApp();
           } else {
             lastTimeBackPress = currentTime;
-            // Optionally triggering a native toast if possible
             console.log('Press back again to exit');
           }
         } else {
