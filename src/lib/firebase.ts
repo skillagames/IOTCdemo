@@ -34,11 +34,22 @@ export async function initializeFirebaseConnection() {
   const isFirstLaunchDone = localStorage.getItem('is_first_launch_done');
   
   if (!isFirstLaunchDone) {
-    console.log("First launch detected: Forcing Firebase network sync before rendering...");
-    await testConnection();
-    localStorage.setItem('is_first_launch_done', 'true');
+    console.log("First launch detected: Forcing Firebase network sync...");
+    try {
+      // Force a network fetch to prime the connection and cache
+      // We use a known document or just the connection test
+      await testConnection();
+      
+      // Also try to pre-fetch global settings if they exist
+      const configDoc = doc(db, 'config', 'settings');
+      await getDocFromServer(configDoc).catch(() => null);
+      
+      localStorage.setItem('is_first_launch_done', 'true');
+    } catch (e) {
+      console.warn("Initial sync failed, but proceeding...", e);
+    }
   } else {
-    // On subsequent launches, just test connection in the background so it is fast
+    // On subsequent launches, just test connection in the background
     testConnection().catch(console.error);
   }
 }

@@ -73,25 +73,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Hide native splash screen immediately to allow React loading screen to show
-    SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
-
     let isMounted = true;
     let unsubscribe: any = null;
+    let backButtonListener: any = null;
+    let lastTimeBackPress = 0;
 
     const init = async () => {
+      // Hide native splash screen after a short delay to ensure SyncScreen (loading=true) is painted
+      setTimeout(() => {
+        if (isMounted) {
+          SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
+        }
+      }, 200);
+
+      // 1. Initialize Firebase connection (forced sync on first launch)
       try {
         const { initializeFirebaseConnection } = await import('../lib/firebase');
         await initializeFirebaseConnection();
       } catch (e) {
         console.warn("Firebase initialization warning:", e);
       }
-
+      // 2. Set up Auth Listener
       unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!isMounted) return;
+        
         try {
           setUser(user);
           if (user) {
-            await fetchProfile(user.uid);
+            // Force server fetch on first launch recorded in local storage
+            const isProfileSynced = localStorage.getItem(`profile_synced_${user.uid}`);
+            if (!isProfileSynced) {
+              const { getDocFromServer } = await import('firebase/firestore');
+              const docSnap = await getDocFromServer(doc(db, 'users', user.uid)).catch(() => null);
+              if (docSnap?.exists()) {
+                setProfile(docSnap.data());
+                localStorage.setItem(`profile_synced_${user.uid}`, 'true');
+              } else {
+                await fetchProfile(user.uid);
+              }
+            } else {
+              await fetchProfile(user.uid);
+            }
             notificationService.checkDeviceExpirations(user.uid);
           } else {
             setProfile(null);
@@ -99,7 +121,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error) {
           console.error("Error synchronizing profile:", error);
         } finally {
-          if (isMounted) setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      });
+
+      // 4. Register Back Button Listener (Double back to exit)
+      const { App } = await import('@capacitor/app');
+      backButtonListener = await App.addListener('backButton', ({ canGoBack }) => {
+        if (!canGoBack || window.location.pathname === '/' || window.location.pathname === '/login') {
+          const currentTime = new Date().getTime();
+          if (currentTime - lastTimeBackPress < 2000) {
+            App.exitApp();
+          } else {
+            lastTimeBackPress = currentTime;
+            // You could show a toast here if Toast plugin was available
+            console.log('Press back again to exit');
+          }
+        } else {
+          window.history.back();
         }
       });
     };
@@ -128,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       isMounted = false;
       if (unsubscribe) unsubscribe();
+      if (backButtonListener) backButtonListener.remove();
       window.removeEventListener('fcm_token_ready', handleFcmToken);
     };
   }, []);
