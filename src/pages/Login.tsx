@@ -11,7 +11,7 @@ import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
 const Login: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +22,7 @@ const Login: React.FC = () => {
   // Toggle for easy undo if requested
   const ENABLE_LOGO_ANIMATION = true;
 
-  if (user) return <Navigate to="/" />;
+  if (user && profile) return <Navigate to="/" />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

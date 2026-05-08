@@ -73,6 +73,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Hide native splash screen immediately to allow React loading screen to show
+    SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
+
+    let isMounted = true;
+    let unsubscribe: any = null;
+
+    const init = async () => {
+      try {
+        const { initializeFirebaseConnection } = await import('../lib/firebase');
+        await initializeFirebaseConnection();
+      } catch (e) {
+        console.warn("Firebase initialization warning:", e);
+      }
+
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
+        try {
+          setUser(user);
+          if (user) {
+            await fetchProfile(user.uid);
+            notificationService.checkDeviceExpirations(user.uid);
+          } else {
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error("Error synchronizing profile:", error);
+        } finally {
+          if (isMounted) setLoading(false);
+        }
+      });
+    };
+
+    init();
+
     const handleFcmToken = async (e: Event) => {
       const customEvent = e as CustomEvent;
       const token = customEvent.detail;
@@ -92,29 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     window.addEventListener('fcm_token_ready', handleFcmToken);
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        setUser(user);
-        if (user) {
-          await fetchProfile(user.uid);
-          notificationService.checkDeviceExpirations(user.uid);
-        } else {
-          setProfile(null);
-        }
-      } catch (error) {
-        console.error("Error synchronizing profile:", error);
-      } finally {
-        setLoading(false);
-        try {
-          await SplashScreen.hide();
-        } catch (e) {
-          console.warn('Failed to hide splash screen', e);
-        }
-      }
-    });
-
     return () => {
-      unsubscribe();
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
       window.removeEventListener('fcm_token_ready', handleFcmToken);
     };
   }, []);
