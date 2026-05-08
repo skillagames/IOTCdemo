@@ -54,7 +54,7 @@ const AppContent = () => {
   if (loading) return <SyncScreen />;
 
   return (
-    <div className="min-h-screen bg-bg-main font-sans text-slate-800">
+    <div className="min-h-dvh bg-bg-main font-sans text-slate-800">
       <Routes>
         <Route path="/login" element={<Login />} />
         
