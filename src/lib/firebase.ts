@@ -14,20 +14,18 @@ export const db = initializeFirestore(app, {
 export const auth = getAuth(app);
 
 // CRITICAL: Validate Connection to Firestore
-async function testConnection() {
-  try {
-    // We try to get a non-existent doc just to see if we can reach the server
-    await getDocFromServer(doc(db, '_internal_', 'connection_test'));
-    console.log("Firebase Connected: Handshake successful.");
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Firebase Connection Error: The client is offline. Please check your configuration.");
-    } else {
-      // It might fail with 'not-found' or 'permission-denied' depending on rules, 
-      // but if it reaches the rules, it means we are connected.
-      console.log("Firebase Connection: Persistence layer reached.");
+async function testConnection(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await getDocFromServer(doc(db, '_internal_', 'connection_test'));
+      console.log("Firebase Connected: Handshake successful.");
+      return true;
+    } catch (error) {
+      console.warn(`Firebase Connection attempt ${i + 1} failed:`, error);
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 1000));
     }
   }
+  return false;
 }
 
 export async function initializeFirebaseConnection() {
@@ -36,11 +34,8 @@ export async function initializeFirebaseConnection() {
   if (!isFirstLaunchDone) {
     console.log("First launch detected: Forcing Firebase network sync...");
     try {
-      // Force a network fetch to prime the connection and cache
-      // We use a known document or just the connection test
-      await testConnection();
+      await testConnection(5); // Be more persistent on first launch
       
-      // Also try to pre-fetch global settings if they exist
       const configDoc = doc(db, 'config', 'settings');
       await getDocFromServer(configDoc).catch(() => null);
       
@@ -49,7 +44,6 @@ export async function initializeFirebaseConnection() {
       console.warn("Initial sync failed, but proceeding...", e);
     }
   } else {
-    // On subsequent launches, just test connection in the background
-    testConnection().catch(console.error);
+    testConnection(1).catch(console.error);
   }
 }

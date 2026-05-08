@@ -79,21 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let lastTimeBackPress = 0;
 
     const init = async () => {
-      // Hide native splash screen after a short delay to ensure SyncScreen (loading=true) is painted
-      setTimeout(() => {
-        if (isMounted) {
-          SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
-        }
-      }, 200);
-
-      // 1. Initialize Firebase connection (forced sync on first launch)
-      try {
-        const { initializeFirebaseConnection } = await import('../lib/firebase');
-        await initializeFirebaseConnection();
-      } catch (e) {
-        console.warn("Firebase initialization warning:", e);
-      }
-      // 2. Set up Auth Listener
+      // 1. Set up Auth Listener
       unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (!isMounted) return;
         
@@ -123,20 +109,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
           if (isMounted) {
             setLoading(false);
+            // Hide native splash screen ONLY after a short delay to ensure React UI is painted
+            // We use a slightly longer delay here because this is the final hurdle
+            setTimeout(() => {
+              SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
+            }, 300);
           }
         }
       });
 
-      // 4. Register Back Button Listener (Double back to exit)
+      // 2. Register Back Button Listener (Double back to exit)
       const { App } = await import('@capacitor/app');
       backButtonListener = await App.addListener('backButton', ({ canGoBack }) => {
-        if (!canGoBack || window.location.pathname === '/' || window.location.pathname === '/login') {
+        const path = window.location.pathname;
+        const isRootPage = path === '/' || path === '/login' || path === '/dashboard';
+        
+        if (!canGoBack || isRootPage) {
           const currentTime = new Date().getTime();
           if (currentTime - lastTimeBackPress < 2000) {
             App.exitApp();
           } else {
             lastTimeBackPress = currentTime;
-            // You could show a toast here if Toast plugin was available
+            // Optionally triggering a native toast if possible
             console.log('Press back again to exit');
           }
         } else {
