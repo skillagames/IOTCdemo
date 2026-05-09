@@ -94,9 +94,15 @@ export const deviceService = {
   },
 
   async seedMasterRegistry() {
+    // Only run if not already seeded in this session to prevent redundant network calls
+    const isSeededInSession = sessionStorage.getItem('master_registry_seeded');
+    if (isSeededInSession) return;
+
     try {
       const registryRef = collection(db, 'master_registry');
       const q = query(registryRef, where('serialNumber', '==', '6001237010828'));
+      
+      // Use getDoc if possible, or trust local state if we've already done this recently
       const snapshot = await getDocs(q);
       
       const masterData = {
@@ -115,11 +121,12 @@ export const deviceService = {
         });
         console.log("Master Registry: New test device provisioned.");
       } else {
-        // Force update existing record to ensure it has all fields
-        const docId = snapshot.docs[0].id;
-        await updateDoc(doc(db, 'master_registry', docId), masterData);
-        console.log("Master Registry: Test device updated with latest descriptors.");
+        // Only update if we are in "debug/first launch" mode or if we really want to force it
+        // For now, let's just mark as done and avoid the extra updateDoc call if it already exists
+        console.log("Master Registry: Test device verified.");
       }
+      
+      sessionStorage.setItem('master_registry_seeded', 'true');
     } catch (e) {
       console.warn("Master Registry Sync: Only operators can provision global hardware keys.", e);
     }

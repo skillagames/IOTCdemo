@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'user',
           createdAt: serverTimestamp(),
           showInsights: true,
+          displayName: auth.currentUser?.displayName || '',
         };
         await setDoc(doc(db, 'users', uid), initialProfile);
         currentProfileData = initialProfile;
@@ -57,12 +58,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await updateDoc(doc(db, 'users', uid), { 
           fcmToken: pendingToken,
           tokenSource: 'native_bridge_sync'
-        });
+        }).catch(() => {}); // Silent fail for housekeeping
         localStorage.removeItem('pending_native_token');
-        console.log('[AuthContext] Synced pending native token to user profile.');
       }
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, path);
+      console.warn("[AuthContext] Profile fetch failed, using minimal fallback:", error);
+      // Minimal fallback to prevent "buggy app screen" 
+      if (!profile) {
+        setProfile({
+          uid: uid,
+          email: auth.currentUser?.email || '',
+          role: 'user',
+          displayName: auth.currentUser?.displayName || 'Member',
+          isOffline: true
+        });
+      }
     }
   };
 
@@ -94,9 +104,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           setUser(user);
           if (user) {
-            // Force server fetch on first launch recorded in local storage
+            // Speed up: if we already have some profile data in state, we can move faster
             const isProfileSynced = localStorage.getItem(`profile_synced_${user.uid}`);
+            
             if (!isProfileSynced) {
+              // Forced server fetch ONLY on absolute first launch for this user
+              console.log('[AuthContext] Performing forced server sync for new user profile...');
               const { getDocFromServer } = await import('firebase/firestore');
               const docSnap = await getDocFromServer(doc(db, 'users', user.uid)).catch(() => null);
               if (docSnap?.exists()) {
@@ -106,9 +119,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 await fetchProfile(user.uid);
               }
             } else {
-              await fetchProfile(user.uid);
+              // Normal re-launch: Use cache-first getDoc, but don't block forever
+              // We'll race it against a small timeout or just trust cache
+              const profilePromise = fetchProfile(user.uid);
+              // If it takes more than 2s to fetch profile on a sub-launch, we'll proceed anyway if possible
+              await Promise.race([
+                profilePromise,
+                new Promise(resolve => setTimeout(resolve, 1500))
+              ]);
             }
-            notificationService.checkDeviceExpirations(user.uid);
+            
+            // Non-blocking expiration check
+            notificationService.checkDeviceExpirations(user.uid).catch(() => {});
           } else {
             setProfile(null);
           }
@@ -117,14 +139,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
           if (isMounted) {
             setLoading(false);
-            // Hide native splash screen ONLY after a short delay to ensure React UI is totally paints
-            // We use a longer 1000ms delay here to bridge the "first launch" gap
-            // This ensures that the white SyncScreen or Login screen is already rendering behind the splash.
-            console.log('[AuthContext] Loading finished. Hiding splash screen in 1000ms...');
+            
+            // Hide native splash screen
+            // Reduced delay from 1000ms to 400ms for better perceived performance
+            const hideDelay = localStorage.getItem('is_first_launch_done') ? 400 : 1000;
+            
+            console.log(`[AuthContext] Loading finished. Hiding splash screen in ${hideDelay}ms...`);
             setTimeout(() => {
-              console.log('[AuthContext] Calling SplashScreen.hide()');
-              SplashScreen.hide().catch(e => console.warn('Failed to hide splash screen', e));
-            }, 1000);
+              SplashScreen.hide().catch(() => {});
+            }, hideDelay);
           }
         }
       });

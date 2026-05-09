@@ -56,32 +56,35 @@ const Alerts: React.FC = () => {
   );
 
   return (
-    <div className="space-y-4">
-      <header className="sticky top-16 z-40 -mx-4 -mt-6 flex items-start justify-between bg-bg-main/90 px-4 pb-4 pt-6 backdrop-blur-md">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">Device Alerts</h1>
-          <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Critical Connectivity Status</p>
-        </div>
-        
-        <button 
-          onClick={alerts.length > 0 ? handleDismissAll : handleRescan}
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-[18px] transition-all active:scale-90",
-            alerts.length > 0 
-              ? "bg-red-50 text-red-500 hover:bg-red-100" 
-              : "bg-emerald-50/50 text-emerald-500 hover:bg-emerald-100/50"
-          )}
-          title={alerts.length > 0 ? "Clear all alerts" : "Refresh signals"}
-        >
-          {alerts.length > 0 ? (
-            <Trash2 className="h-5 w-5" />
-          ) : (
-            <RefreshCcw className="h-5 w-5" />
-          )}
-        </button>
-      </header>
+    <div className="flex flex-col h-[calc(100vh-180px)] overflow-hidden -mt-2">
+      {/* Fixed Header Box */}
+      <div className="sticky top-0 z-30 bg-bg-main/95 pb-4 pt-2 backdrop-blur-sm">
+        <header className="flex items-start justify-between px-1">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">Device Alerts</h1>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Critical Connectivity Status</p>
+          </div>
+          
+          <button 
+            onClick={alerts.length > 0 ? handleDismissAll : handleRescan}
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-[18px] transition-all active:scale-90",
+              alerts.length > 0 
+                ? "bg-red-50 text-red-500 hover:bg-red-100" 
+                : "bg-emerald-50/50 text-emerald-500 hover:bg-emerald-100/50"
+            )}
+            title={alerts.length > 0 ? "Clear all alerts" : "Refresh signals"}
+          >
+            {alerts.length > 0 ? (
+              <Trash2 className="h-5 w-5" />
+            ) : (
+              <RefreshCcw className="h-5 w-5" />
+            )}
+          </button>
+        </header>
+      </div>
 
-      <div className="grid gap-3 p-1 -m-1">
+      <div className="flex-1 overflow-y-auto space-y-3 p-1 pb-32 custom-scrollbar">
         <AnimatePresence mode="popLayout">
           {alerts.length > 0 ? (
             alerts.map((alert) => (
@@ -198,34 +201,34 @@ const Alerts: React.FC = () => {
           </div>
         )}
         </AnimatePresence>
-      </div>
 
-      {/* Quick Actions if there are alerts */}
-      {alerts.length > 0 && (
-        <div className="min-h-[calc(100vh-14rem)] w-full pt-20">
-          <div className="rounded-[28px] bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/20">
-             <h3 className="text-xs font-black uppercase tracking-widest leading-none mb-2">Protocol Suggestion</h3>
-             <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-4">
-               Detected {alerts.length} device(s) requiring immediate attention. Tap on an alert to initiate the renewal protocol and restore full telemetry sync.
-             </p>
-             <div className="flex flex-col gap-2">
-               <button 
-                onClick={() => navigate('/devices')}
-                className="w-full rounded-xl bg-white/10 py-2.5 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors"
-               >
-                 Manage Devices
-               </button>
-               <button 
-                onClick={handleDismissAll}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-colors"
-               >
-                 <Trash2 className="h-3 w-3" />
-                 Dismiss All Active Signals
-               </button>
-             </div>
+        {/* Quick Actions if there are alerts */}
+        {alerts.length > 0 && (
+          <div className="min-h-[calc(100vh-14rem)] w-full pt-20">
+            <div className="rounded-[28px] bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/20">
+              <h3 className="text-xs font-black uppercase tracking-widest leading-none mb-2">Protocol Suggestion</h3>
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-4">
+                Detected {alerts.length} device(s) requiring immediate attention. Tap on an alert to initiate the renewal protocol and restore full telemetry sync.
+              </p>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => navigate('/devices')}
+                  className="w-full rounded-xl bg-white/10 py-2.5 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors"
+                >
+                  Manage Devices
+                </button>
+                <button 
+                  onClick={handleDismissAll}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-colors"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Dismiss All Active Signals
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

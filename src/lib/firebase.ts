@@ -44,6 +44,7 @@ export async function initializeFirebaseConnection() {
       console.warn("Initial sync failed, but proceeding...", e);
     }
   } else {
-    testConnection(1).catch(console.error);
+    // Non-blocking background check on subsequent launches
+    testConnection(1).catch(() => {});
   }
 }

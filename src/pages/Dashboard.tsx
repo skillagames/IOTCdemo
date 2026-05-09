@@ -115,25 +115,25 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 w-full md:w-auto">
               <button 
                 onClick={() => navigate('/scan')}
-                className="group flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-white transition-all active:scale-95 shadow-lg shadow-slate-900/10"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl bg-slate-900 px-6 py-3 text-white transition-all active:scale-95 shadow-lg shadow-slate-900/10"
               >
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Add Device</span>
+                <PlusCircle className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Add Device</span>
               </button>
               <button 
                 onClick={() => navigate('/devices')}
-                className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2 text-slate-900 transition-all active:scale-95 hover:bg-slate-100"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
-                <Smartphone className="h-3.5 w-3.5" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Inventory</span>
+                <Smartphone className="h-4 w-4 text-sky-400 group-hover:text-sky-600 transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Inventory</span>
               </button>
             </div>
           </div>
           
-          <div className="mt-4 flex items-center gap-5 border-t border-slate-50 pt-3.5">
+          <div className="mt-1.5 flex items-center gap-5 border-t border-slate-50 pt-3.5">
              <div className="flex flex-col">
                 <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">Active Pool</span>
                 <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">{devices.filter(d => d.subscriptionStatus === 'active').length}</span>
@@ -158,8 +158,8 @@ const Dashboard: React.FC = () => {
       <section 
         ref={statsRef}
         className={cn(
-          "sticky top-[64px] z-20 pt-4 -mt-2 transition-all duration-300 space-y-4",
-          isSticky ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent pb-10" : "bg-transparent pb-2",
+          "sticky top-[64px] z-20 pt-4 pb-2 -mt-2 transition-all duration-300 space-y-4",
+          isSticky ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent" : "bg-transparent",
           isStickyHidden && isSticky ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
         )}>
         <div className="grid grid-cols-3 gap-2">
@@ -189,39 +189,41 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between h-7">
+        <div className="flex items-center justify-between h-8">
           <div className="flex items-center gap-2">
             <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Quick Inventory</h2>
-            {filter && (
-               <button 
-                onClick={() => setFilter(null)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
-                  filter === 'active' && "bg-emerald-50 text-emerald-600 border-emerald-100",
-                  filter === 'expired' && "bg-red-50 text-red-600 border-red-100",
-                  filter === 'inactive' && "bg-slate-50 text-slate-500 border-slate-200"
-                )}
-               >
-                 <span>{filter}</span>
-                 <X className="h-2 w-2" />
-               </button>
-            )}
+            <div className="flex items-center min-h-[24px]">
+              {filter && (
+                <button 
+                  onClick={() => setFilter(null)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
+                    filter === 'active' && "bg-emerald-50 text-emerald-600 border-emerald-100",
+                    filter === 'expired' && "bg-red-50 text-red-600 border-red-100",
+                    filter === 'inactive' && "bg-slate-50 text-slate-500 border-slate-200"
+                  )}
+                >
+                  <span>{filter}</span>
+                  <X className="h-2 w-2" />
+                </button>
+              )}
+            </div>
           </div>
           <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tight">{filteredDevices.length} DEVICE(S)</span>
         </div>
       </section>
 
       {/* Natural List with Independent Scroll (conditional) */}
-      <section className="relative -mt-8">
+      <section className="relative -mt-6">
         {filter && (
-          <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-bg-main to-transparent z-10 pointer-events-none" />
+          <div className="absolute -top-2 left-0 right-0 h-12 bg-gradient-to-b from-bg-main to-transparent z-10 pointer-events-none" />
         )}
         <div 
           ref={listRef} 
           className={cn(
-            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 transition-all duration-300 relative",
+            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 transition-all duration-300 relative pt-1",
             filter 
-              ? (isSticky ? "h-[405px] overflow-y-auto pt-6 pb-12" : "h-[405px] overflow-hidden pt-6") 
+              ? (isSticky ? "h-[405px] overflow-y-auto pb-12" : "h-[405px] overflow-hidden") 
               : "h-auto overflow-visible"
           )}
         >

@@ -75,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   return (
     <div className="flex min-h-dvh flex-col pb-16">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
           <div className="flex items-center">
             {showBack && (
