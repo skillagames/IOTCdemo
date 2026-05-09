@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Battery, Signal, ChevronRight, PlusCircle, AlertCircle, X, Zap, Activity, ShieldCheck } from 'lucide-react';
+import { Network, Battery, Signal, ChevronRight, PlusCircle, AlertCircle, X, Zap, Activity, ShieldCheck } from 'lucide-react';
 import { deviceService, Device } from '../services/deviceService';
 import { useAuth } from '../context/AuthContext';
 import { formatDate, cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { DeviceIcon } from '../components/DeviceIcon';
 
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
@@ -28,10 +29,15 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     // Automatically scroll to the filter section when a status is selected
-    // to hide the welcome hero and focus on the inventory
+    // but only if we are not already looking at the inventory
     if (!loading && filter && scrollAnchorRef.current) {
-      const offset = scrollAnchorRef.current.offsetTop - 64; // Account for 64px layout header
-      window.scrollTo({ top: offset, behavior: 'smooth' });
+      const offset = scrollAnchorRef.current.offsetTop - 64;
+      const currentScroll = window.scrollY;
+      
+      // Only scroll down if the inventory isn't in view yet (user is at the very top)
+      if (currentScroll < offset - 60) {
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
       
       // Also reset the internal list scroll to the top
       if (listRef.current) {
@@ -88,17 +94,91 @@ const Dashboard: React.FC = () => {
     : devices;
 
   return (
-    <div className="space-y-5 pb-0">
+    <div className="pb-0">
       {/* Hero Welcome Section - Compressed Sleek Header */}
-      <section>
+      <section className="pt-4 pb-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-[32px] border border-slate-100 bg-white p-4 shadow-sm"
         >
-          {/* IoT Logo Watermark */}
-          <div className="absolute -right-6 -top-6 text-slate-200/40 pointer-events-none z-0">
-             <Smartphone size={160} strokeWidth={1.5} className="rotate-12" />
+          {/* Animated Cluster Network Background */}
+          <div className="absolute -right-6 -top-12 text-slate-200/40 pointer-events-none z-0">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 300, repeat: Infinity, ease: "linear" }}
+            >
+              <svg width="240" height="240" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-12">
+              {/* Central Hub */}
+              <motion.circle 
+                cx="12" cy="12" r="1.2" 
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: [0, 1, 1, 0.5], scale: [0, 1.2, 1, 1] }}
+                transition={{ duration: 4, repeat: Infinity, times: [0, 0.1, 0.2, 1] }}
+                fill="currentColor"
+                fillOpacity="0.1"
+              />
+              
+              {/* Primary Nodes and Connections */}
+              {[
+                { x: 19, y: 15, d: 0.5, r: 0.8 },
+                { x: 6, y: 17, d: 2.5, r: 0.8 },
+                { x: 13, y: 5, d: 4.5, r: 0.8 },
+                { x: 18, y: 8, d: 6.5, r: 0.8 },
+                { x: 7, y: 9, d: 8.5, r: 0.8 }
+              ].map((node, i) => {
+                // Calculate direction for line shortening to avoid center overlap
+                const dx = node.x - 12;
+                const dy = node.y - 12;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const startMargin = 1.5; // Hub radius + gap
+                const endMargin = node.r + 0.5; // Node radius + gap
+                
+                const x1 = 12 + (dx / dist) * startMargin;
+                const y1 = 12 + (dy / dist) * startMargin;
+                const x2 = node.x - (dx / dist) * endMargin;
+                const y2 = node.y - (dy / dist) * endMargin;
+
+                return (
+                  <React.Fragment key={i}>
+                    <motion.line 
+                      x1={x1} y1={y1} x2={x2} y2={y2}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: [0, 1, 1, 0], opacity: [0, 1, 0.5, 0] }}
+                      transition={{ duration: 8, delay: node.d, repeat: Infinity, times: [0, 0.2, 0.8, 1] }}
+                    />
+                    <motion.circle 
+                      cx={node.x} cy={node.y} r={node.r}
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: [0, 1, 0.8, 0], scale: [0, 1, 1, 0.5] }}
+                      transition={{ duration: 8, delay: node.d + 0.5, repeat: Infinity, times: [0, 0.1, 0.9, 1] }}
+                      fill="currentColor"
+                      fillOpacity="0.05"
+                    />
+                  </React.Fragment>
+                );
+              })}
+
+              {/* Secondary Cross-Connections (Dashed) */}
+              {[
+                { x1: 19, y1: 15, x2: 18, y2: 8, d: 3 },
+                { x1: 6, y1: 17, x2: 7, y2: 9, d: 5 },
+                { x1: 13, y1: 5, x2: 18, y2: 8, d: 7 }
+              ].map((line, i) => {
+                // Simple straight lines for secondary as they are subtle
+                return (
+                  <motion.line 
+                    key={`link-${i}`}
+                    x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: [0, 1, 1, 0], opacity: [0, 0.3, 0.2, 0] }}
+                    transition={{ duration: 10, delay: line.d, repeat: Infinity, times: [0, 0.3, 0.7, 1] }}
+                    strokeDasharray="0.5 1"
+                  />
+                );
+              })}
+            </svg>
+            </motion.div>
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -127,7 +207,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/devices')}
                 className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
-                <Smartphone className="h-4 w-4 text-sky-400 group-hover:text-sky-600 transition-colors" />
+                <Network className="h-4 w-4 text-sky-400 group-hover:text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest">Inventory</span>
               </button>
             </div>
@@ -158,7 +238,7 @@ const Dashboard: React.FC = () => {
       <section 
         ref={statsRef}
         className={cn(
-          "sticky top-[64px] z-20 pt-4 pb-2 -mt-2 transition-all duration-300 space-y-4",
+          "sticky top-[64px] z-20 pt-4 pb-0 mt-1 transition-all duration-300",
           isSticky ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent" : "bg-transparent",
           isStickyHidden && isSticky ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
         )}>
@@ -183,29 +263,31 @@ const Dashboard: React.FC = () => {
             label="INACTIVE" 
             value={devices.filter(d => d.subscriptionStatus === 'inactive').length.toString()} 
             color="slate" 
-            icon={Smartphone}
+            icon={Activity}
             isActive={filter === 'inactive'}
             onClick={() => setFilter(filter === 'inactive' ? null : 'inactive')}
           />
         </div>
 
-        <div className="flex items-center justify-between h-8">
+        <div className="flex items-center justify-between h-8 mt-2">
           <div className="flex items-center gap-2">
             <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Quick Inventory</h2>
-            <div className="flex items-center min-h-[24px]">
+            <div className="flex items-center h-6">
               {filter && (
-                <button 
+                <motion.button 
+                  initial={{ opacity: 0, scale: 0.9, x: -5 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
                   onClick={() => setFilter(null)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
+                    "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
                     filter === 'active' && "bg-emerald-50 text-emerald-600 border-emerald-100",
                     filter === 'expired' && "bg-red-50 text-red-600 border-red-100",
                     filter === 'inactive' && "bg-slate-50 text-slate-500 border-slate-200"
                   )}
                 >
                   <span>{filter}</span>
-                  <X className="h-2 w-2" />
-                </button>
+                  <X className="h-2 w-2 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                </motion.button>
               )}
             </div>
           </div>
@@ -214,35 +296,44 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* Natural List with Independent Scroll (conditional) */}
-      <section className="relative -mt-6">
-        {filter && (
-          <div className="absolute -top-2 left-0 right-0 h-12 bg-gradient-to-b from-bg-main to-transparent z-10 pointer-events-none" />
-        )}
+      <section className="relative mt-1">
         <div 
           ref={listRef} 
           className={cn(
-            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 transition-all duration-300 relative pt-1",
+            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 relative pt-1 overflow-hidden",
             filter 
-              ? (isSticky ? "h-[405px] overflow-y-auto pb-12" : "h-[405px] overflow-hidden") 
-              : "h-auto overflow-visible"
+              ? (isSticky ? "h-[405px] overflow-y-auto pb-12" : "h-[405px]") 
+              : "min-h-[405px] h-auto overflow-visible"
           )}
         >
-          <div className="grid gap-3 p-1">
+          <div className="grid gap-3 px-1 pb-1">
+            <AnimatePresence initial={false}>
             {filteredDevices.length > 0 ? (
-              filteredDevices.map((device, idx) => (
+              filteredDevices.map((device) => (
                 <motion.div 
+                  layout
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.03 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ 
+                    duration: 0.2,
+                    layout: { type: "spring", bounce: 0, duration: 0.4 }
+                  }}
                   key={device.id}
+                  style={{ willChange: "transform, opacity" }}
                 >
                   <DeviceCard device={device} onClick={() => navigate(`/devices/${device.id}`)} />
                 </motion.div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                key="empty-state"
+                className="flex flex-col items-center justify-center gap-4 py-16 text-center"
+              >
                 <div className="flex h-16 w-16 items-center justify-center rounded-[24px] bg-white border border-slate-100 text-slate-200 shadow-sm">
-                  <Smartphone className="h-8 w-8" />
+                  <Activity className="h-8 w-8" />
                 </div>
                 <p className="text-xs font-bold text-slate-400">{filter ? `No ${filter} devices found` : 'No devices provisioned'}</p>
                 {!filter && (
@@ -263,8 +354,9 @@ const Dashboard: React.FC = () => {
                     Seed Simulation
                   </button>
                 )}
-              </div>
+              </motion.div>
             )}
+            </AnimatePresence>
           </div>
         </div>
         {filter && (
@@ -274,7 +366,7 @@ const Dashboard: React.FC = () => {
 
       {/* Cluster Insights Section */}
       {profile?.showInsights !== false && (
-        <section ref={insightsRef} className="space-y-4 pt-2">
+        <section ref={insightsRef} className="space-y-4 pt-2 mt-5">
            <div className="flex items-center justify-between pb-2">
               <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Cluster Insights</h2>
               <div className="flex h-1 w-12 rounded-full bg-slate-100 overflow-hidden">
@@ -360,7 +452,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Brand Partner Logo */}
-      <section className="flex flex-col items-center justify-center pt-2 pb-4">
+      <section className="flex flex-col items-center justify-center pt-2 pb-4 mt-5">
         <div className="flex flex-col items-center gap-2.5">
           <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">Hardware Partner</p>
           <img 
@@ -412,7 +504,7 @@ const DeviceCard = ({ device, onClick }: { device: Device; onClick: () => void }
         isExpired && "bg-red-50 text-red-400 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
         isInactive && "bg-slate-100 text-slate-400 group-active:bg-slate-600 group-active:text-white md:group-hover:bg-slate-600 md:group-hover:text-white"
       )}>
-        <Smartphone className="h-6 w-6" />
+        <DeviceIcon className="h-6 w-6" description={device.description} name={device.name} />
       </div>
       
       <div className="flex-1 min-w-0 text-left">

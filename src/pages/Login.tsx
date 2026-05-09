@@ -6,7 +6,7 @@ import {
 import { auth } from '../lib/firebase';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Smartphone, ShieldCheck, Mail, Lock, ArrowRight, User as UserIcon } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, User as UserIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 

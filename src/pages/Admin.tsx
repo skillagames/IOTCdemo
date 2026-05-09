@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { adminService } from '../services/adminService';
-import { User, Smartphone, Shield, Search, MoreVertical } from 'lucide-react';
+import { User, Shield, Search, MoreVertical } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn, formatDate } from '../lib/utils';
+import { DeviceIcon } from '../components/DeviceIcon';
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'devices'>('users');
@@ -78,7 +79,7 @@ const Admin: React.FC = () => {
               users.map((user, idx) => (
                 <AdminItem 
                   key={user.uid} 
-                  icon={User} 
+                  icon={<User className="h-4 w-4" />} 
                   title={user.email} 
                   subtitle={`Since: ${formatDate(user.createdAt, 'PP')}`}
                   badge={user.role}
@@ -89,7 +90,7 @@ const Admin: React.FC = () => {
               devices.map((device, idx) => (
                 <AdminItem 
                   key={device.id} 
-                  icon={Smartphone} 
+                  icon={<DeviceIcon className="h-4 w-4" name={device.name} description={device.description} />} 
                   title={device.description || device.name} 
                   subtitle={`SN: ${device.serialNumber}${device.description ? ` - ${device.name}` : ''}`}
                   badge={device.subscriptionStatus}
@@ -104,10 +105,10 @@ const Admin: React.FC = () => {
   );
 };
 
-const AdminItem = ({ icon: Icon, title, subtitle, badge, badgeColor }: { icon: any; title: string; subtitle: string; badge: string; badgeColor: string; [key: string]: any }) => (
+const AdminItem = ({ icon, title, subtitle, badge, badgeColor }: { icon: React.ReactNode; title: string; subtitle: string; badge: string; badgeColor: string; [key: string]: any }) => (
   <div className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0">
     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 text-slate-400">
-      <Icon className="h-4 w-4" />
+      {icon}
     </div>
     <div className="flex-1 min-w-0">
       <h4 className="font-bold text-white text-xs truncate">{title}</h4>

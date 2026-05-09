@@ -215,11 +215,36 @@ const Profile: React.FC = () => {
         </div>
       </section>
 
+
+      {/* App Refresh & Version */}
+      <div className="flex flex-col gap-2 pb-1 pt-1">
+         <div className="text-center">
+            <span className="text-[10px] font-black text-slate-400/50 uppercase tracking-widest">Version: v1.1.14</span>
+         </div>
+
+         <button 
+           onClick={() => {}}
+           className="flex w-full items-center justify-center gap-2 rounded-[20px] border border-slate-100 bg-white py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all active:scale-95"
+         >
+           <LifeBuoy className="h-3.5 w-3.5 text-primary" />
+           Operational Support
+         </button>
+      </div>
+
+      {/* Log Out Button */}
+      <button 
+        onClick={handleLogout}
+        className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-slate-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 transition-all active:scale-95"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+        Terminate Session
+      </button>
+
       {/* Collapsible Dev Tools */}
       <section className="space-y-2">
         <button 
           onClick={toggleDevTools}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/50 hover:bg-slate-100 transition-colors"
+          className="w-full flex items-center justify-center relative px-3 py-2 rounded-xl bg-slate-50/50 hover:bg-slate-100 transition-colors"
         >
           <div className="flex items-center gap-2">
              <Terminal className="h-3.5 w-3.5 text-primary" />
@@ -228,6 +253,7 @@ const Profile: React.FC = () => {
           <motion.div
             animate={{ rotate: isDevExpanded ? 180 : 0 }}
             transition={{ type: "spring", damping: 20 }}
+            className="absolute right-3"
           >
             <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
           </motion.div>
@@ -278,6 +304,18 @@ const Profile: React.FC = () => {
                       </span>
                     </div>
                     <div className={cn("h-1.5 w-1.5 rounded-full", profile?.showInsights === false ? "bg-slate-600" : "bg-emerald-400")} />
+                  </button>
+
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="mt-2 flex w-full items-center justify-between rounded-[16px] bg-white/5 px-4 py-3 transition-all hover:bg-white/10 active:scale-95"
+                  >
+                    <div className="flex items-center gap-3">
+                      <RefreshCw className="h-3.5 w-3.5 text-blue-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                        Reload Workspace
+                      </span>
+                    </div>
                   </button>
 
                   
@@ -546,41 +584,6 @@ const Profile: React.FC = () => {
           )}
         </AnimatePresence>
       </section>
-
-      {/* App Refresh & Version */}
-      <div className="flex flex-col gap-2 pb-1 pt-1">
-         <button 
-           onClick={() => {
-             // Clear any cached flags without clearing valid tokens
-             window.location.reload();
-           }}
-           className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-blue-50 py-3 text-[10px] font-black uppercase tracking-widest text-blue-500 transition-all active:scale-95"
-         >
-           <RefreshCw className="h-3.5 w-3.5" />
-           Reload Workspace
-         </button>
-         
-         <div className="text-center">
-            <span className="text-[10px] font-black text-slate-400/50 uppercase tracking-widest">Version: v1.1.14</span>
-         </div>
-
-         <button 
-           onClick={() => {}}
-           className="flex w-full items-center justify-center gap-2 rounded-[20px] border border-slate-100 bg-white py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all active:scale-95"
-         >
-           <LifeBuoy className="h-3.5 w-3.5 text-primary" />
-           Operational Support
-         </button>
-      </div>
-
-      {/* Log Out Button */}
-      <button 
-        onClick={handleLogout}
-        className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-slate-50 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 transition-all active:scale-95"
-      >
-        <LogOut className="h-3.5 w-3.5" />
-        Terminate Session
-      </button>
 
       {/* Footer Branding */}
       <div className="text-center pt-1 space-y-0.5">

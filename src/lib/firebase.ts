@@ -13,38 +13,9 @@ export const db = initializeFirestore(app, {
 
 export const auth = getAuth(app);
 
-// CRITICAL: Validate Connection to Firestore
-async function testConnection(retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await getDocFromServer(doc(db, '_internal_', 'connection_test'));
-      console.log("Firebase Connected: Handshake successful.");
-      return true;
-    } catch (error) {
-      console.warn(`Firebase Connection attempt ${i + 1} failed: ${error}`);
-      if (i < retries - 1) await new Promise(r => setTimeout(r, 500));
-    }
-  }
-  return false;
-}
-
+// CRITICAL: Validate Connection to Firestore (Minimal check)
 export async function initializeFirebaseConnection() {
-  const isFirstLaunchDone = localStorage.getItem('is_first_launch_done');
-  
-  if (!isFirstLaunchDone) {
-    console.log("First launch detected: Forcing Firebase network sync...");
-    try {
-      await testConnection(5); // Be more persistent on first launch
-      
-      const configDoc = doc(db, 'config', 'settings');
-      await getDocFromServer(configDoc).catch(() => null);
-      
-      localStorage.setItem('is_first_launch_done', 'true');
-    } catch (e) {
-      console.warn("Initial sync failed, but proceeding...", e);
-    }
-  } else {
-    // Non-blocking background check on subsequent launches
-    testConnection(1).catch(() => {});
-  }
+  // We've moved away from blocking handshakes to prioritize speed and cache reliability.
+  // The persistentLocalCache is already configured during db initialization.
+  console.log("[Firebase] Initialization starting (background sync enabled)");
 }

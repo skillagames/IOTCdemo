@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Repeat
 } from 'lucide-react';
+import { DeviceIcon } from '../components/DeviceIcon';
 import { 
   AreaChart, 
   Area, 
@@ -130,14 +131,14 @@ const DeviceDetails: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      {/* Brand Partner Logo */}
-      <section className="flex flex-col items-center justify-center pt-2 pb-4">
-        <div className="flex flex-col items-center gap-2.5">
-          <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">Hardware Partner</p>
+      {/* Brand Partner & Device Identity Header */}
+      <section className="relative flex items-center justify-center pt-2 pb-3 px-1">
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">Manufacturer</p>
           <img 
             src="/hikvision.svg" 
-            alt="Hikvision Logo" 
-            className="h-5 w-auto object-contain"
+            alt="Manufacturer Logo" 
+            className="h-4.5 w-auto object-contain opacity-80"
           />
         </div>
       </section>
@@ -149,8 +150,17 @@ const DeviceDetails: React.FC = () => {
             isExpired ? "bg-red-500/10" : isInactive ? "bg-slate-500/10" : "bg-primary/10"
           )} />
           
-          <div className="relative flex items-start">
-            <div className="flex-1 space-y-1 pr-14">
+          {/* Subtle Background Icon */}
+          <div className="absolute -right-6 -top-10 opacity-[0.03] pointer-events-none select-none z-0">
+             <DeviceIcon 
+               className="h-44 w-44 -rotate-12 -scale-x-100" 
+               description={device.description} 
+               name={device.name} 
+             />
+          </div>
+          
+          <div className="relative z-10 flex items-start">
+            <div className="flex-1 space-y-1 pr-16 text-left">
               <h2 className="text-lg font-black text-slate-900 leading-none break-words">{device.description || device.name}</h2>
               {device.description && (
                 <p className="text-sm font-medium text-slate-500 leading-tight">{device.name}</p>

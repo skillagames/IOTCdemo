@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Signal, AlertCircle, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, Signal, AlertCircle, ChevronRight, SlidersHorizontal, X, Activity } from 'lucide-react';
 import { deviceService, Device } from '../services/deviceService';
 import { useAuth } from '../context/AuthContext';
 import { formatDate, cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { DeviceIcon } from '../components/DeviceIcon';
 
 const Devices: React.FC = () => {
   const { user } = useAuth();
@@ -48,10 +49,14 @@ const Devices: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] overflow-hidden -mt-2">
-      {/* Fixed Header Box */}
-      <div className="sticky top-0 z-30 bg-bg-main/95 pb-4 pt-2 backdrop-blur-sm">
-        <header className="space-y-4 px-1">
+    <div className="-mt-4">
+      <div className="sticky top-16 z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+        {/* Solid Background Layer */}
+        <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
+        {/* Gradient Fade Layer */}
+        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
+        
+        <header className="relative z-20 space-y-4 px-1 pb-6">
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">Device Inventory</h1>
             <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Infrastructure: {devices.length} Devices</p>
@@ -114,7 +119,7 @@ const Devices: React.FC = () => {
         </header>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 p-1 pb-32 custom-scrollbar">
+      <div className="space-y-3 p-1 pb-32">
         {filteredDevices.length > 0 ? (
           filteredDevices.map((device, idx) => (
             <motion.div 
@@ -129,7 +134,7 @@ const Devices: React.FC = () => {
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
              <div className="flex h-16 w-16 items-center justify-center rounded-[24px] bg-slate-50 text-slate-200">
-                <Smartphone className="h-8 w-8" />
+                <Activity className="h-8 w-8" />
              </div>
              <p className="text-sm font-bold text-slate-400">No records matching your search.</p >
           </div>
@@ -157,7 +162,7 @@ const DeviceItem = ({ device, onClick }: { device: Device; onClick: () => void }
         isExpired && "bg-red-50 text-red-500 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
         isInactive && "bg-slate-50 text-slate-300 group-active:bg-slate-500 group-active:text-white md:group-hover:bg-slate-500 md:group-hover:text-white"
       )}>
-        <Smartphone className="h-6 w-6" />
+        <DeviceIcon className="h-6 w-6" description={device.description} name={device.name} />
       </div>
       
       <div className="flex-1 min-w-0 text-left">

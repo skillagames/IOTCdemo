@@ -56,10 +56,14 @@ const Alerts: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] overflow-hidden -mt-2">
-      {/* Fixed Header Box */}
-      <div className="sticky top-0 z-30 bg-bg-main/95 pb-4 pt-2 backdrop-blur-sm">
-        <header className="flex items-start justify-between px-1">
+    <div className="-mt-4 min-h-screen pb-12">
+      <div className="sticky top-16 z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+        {/* Solid Background Layer */}
+        <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
+        {/* Gradient Fade Layer */}
+        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
+        
+        <header className="relative z-40 flex items-start justify-between px-1 pb-6">
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">Device Alerts</h1>
             <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Critical Connectivity Status</p>
@@ -84,10 +88,11 @@ const Alerts: React.FC = () => {
         </header>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 p-1 pb-32 custom-scrollbar">
-        <AnimatePresence mode="popLayout">
-          {alerts.length > 0 ? (
-            alerts.map((alert) => (
+      <div className="relative p-1">
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {alerts.length > 0 ? (
+              alerts.map((alert) => (
               <motion.div
                 key={alert.id}
                 layout
@@ -123,7 +128,7 @@ const Alerts: React.FC = () => {
                     }
                   }}
                   className={cn(
-                    "group relative flex w-full items-center gap-4 overflow-hidden rounded-[24px] bg-white p-4 border transition-shadow shadow-sm text-left touch-none",
+                    "group relative flex w-full items-center gap-4 overflow-hidden rounded-[24px] bg-white py-3 px-4 border transition-shadow shadow-sm text-left touch-none",
                     alert.type === 'expired' ? "border-red-100" : alert.type === 'inactive' ? "border-slate-100" : "border-orange-100"
                   )}
                 >
@@ -156,7 +161,7 @@ const Alerts: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col items-center gap-2">
                     <button 
                       onClick={() => handleDismiss(alert.id)}
                       className="rounded-full bg-slate-50 p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors"
@@ -201,31 +206,51 @@ const Alerts: React.FC = () => {
           </div>
         )}
         </AnimatePresence>
+        </div>
 
-        {/* Quick Actions if there are alerts */}
+        {/* Quick Actions - Constrained sticky behavior correctly stopping before the header */}
         {alerts.length > 0 && (
-          <div className="min-h-[calc(100vh-14rem)] w-full pt-20">
-            <div className="rounded-[28px] bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/20">
-              <h3 className="text-xs font-black uppercase tracking-widest leading-none mb-2">Protocol Suggestion</h3>
-              <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-4">
-                Detected {alerts.length} device(s) requiring immediate attention. Tap on an alert to initiate the renewal protocol and restore full telemetry sync.
+          <div className="sticky top-[160px] z-20 w-full mt-12 mb-4 px-1">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="rounded-[32px] bg-slate-900/95 backdrop-blur-xl p-6 text-white shadow-2xl shadow-slate-900/50 border border-white/10"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] leading-none text-emerald-400">Protocol Suggestion</h3>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-5">
+                Detected {alerts.length} device signals requiring attention. Initiate renewal protocol to restore telemetry sync.
               </p>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 <button 
                   onClick={() => navigate('/devices')}
-                  className="w-full rounded-xl bg-white/10 py-2.5 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors"
+                  className="w-full rounded-2xl bg-white/10 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-all active:scale-[0.98]"
                 >
                   Manage Devices
                 </button>
+                
+                <button 
+                  onClick={loadAlerts}
+                  className={cn(
+                    "flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/20 transition-all active:scale-[0.98]",
+                    loading && "opacity-50 pointer-events-none"
+                  )}
+                >
+                  <RefreshCcw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+                  {loading ? "Refreshing..." : "Refresh Active Signals"}
+                </button>
+
                 <button 
                   onClick={handleDismissAll}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-[0.98]"
                 >
-                  <Trash2 className="h-3 w-3" />
-                  Dismiss All Active Signals
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Dismiss All Signals
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

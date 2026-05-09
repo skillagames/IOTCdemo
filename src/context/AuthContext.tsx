@@ -61,18 +61,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }).catch(() => {}); // Silent fail for housekeeping
         localStorage.removeItem('pending_native_token');
       }
+      return currentProfileData;
     } catch (error) {
       console.warn("[AuthContext] Profile fetch failed, using minimal fallback:", error);
       // Minimal fallback to prevent "buggy app screen" 
+      const fallback = {
+        uid: uid,
+        email: auth.currentUser?.email || '',
+        role: 'user',
+        displayName: auth.currentUser?.displayName || 'Member',
+        isOffline: true
+      };
       if (!profile) {
-        setProfile({
-          uid: uid,
-          email: auth.currentUser?.email || '',
-          role: 'user',
-          displayName: auth.currentUser?.displayName || 'Member',
-          isOffline: true
-        });
+        setProfile(fallback);
       }
+      return fallback;
     }
   };
 
@@ -84,18 +87,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
-    let unsubscribe: any = null;
+    let unsubscribe: (() => void) | null = null;
     let backButtonListener: any = null;
     let lastTimeBackPress = 0;
 
     const init = async () => {
-      // 1. Initialize Firebase connection (forced sync on first launch)
-      try {
-        const { initializeFirebaseConnection } = await import('../lib/firebase');
-        await initializeFirebaseConnection();
-      } catch (e) {
-        console.warn("Firebase initialization warning:", e);
-      }
+      // 1. Background Firebase setup - no longer blocking the whole flow
+      import('../lib/firebase').then(({ initializeFirebaseConnection }) => {
+        initializeFirebaseConnection().catch(() => {});
+      });
 
       // 2. Set up Auth Listener
       unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -104,50 +104,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           setUser(user);
           if (user) {
-            // Speed up: if we already have some profile data in state, we can move faster
+            // Priority: Speed. Check if we have minimal cached data to show immediately
+            const cachedProfile = localStorage.getItem(`profile_cache_${user.uid}`);
+            if (cachedProfile && !profile) {
+              try {
+                setProfile(JSON.parse(cachedProfile));
+              } catch (e) {}
+            }
+
+            // Sync logic: Only force server if we truly haven't seen this user before
             const isProfileSynced = localStorage.getItem(`profile_synced_${user.uid}`);
             
             if (!isProfileSynced) {
-              // Forced server fetch ONLY on absolute first launch for this user
-              console.log('[AuthContext] Performing forced server sync for new user profile...');
+              console.log('[AuthContext] New user sync...');
               const { getDocFromServer } = await import('firebase/firestore');
               const docSnap = await getDocFromServer(doc(db, 'users', user.uid)).catch(() => null);
               if (docSnap?.exists()) {
-                setProfile(docSnap.data());
+                const data = docSnap.data();
+                setProfile(data);
+                localStorage.setItem(`profile_cache_${user.uid}`, JSON.stringify(data));
                 localStorage.setItem(`profile_synced_${user.uid}`, 'true');
               } else {
                 await fetchProfile(user.uid);
               }
             } else {
-              // Normal re-launch: Use cache-first getDoc, but don't block forever
-              // We'll race it against a small timeout or just trust cache
-              const profilePromise = fetchProfile(user.uid);
-              // If it takes more than 2s to fetch profile on a sub-launch, we'll proceed anyway if possible
-              await Promise.race([
-                profilePromise,
-                new Promise(resolve => setTimeout(resolve, 1500))
-              ]);
+              // Background refresh - don't block UI if cache exists
+              fetchProfile(user.uid).then((data) => {
+                 if (user && data) localStorage.setItem(`profile_cache_${user.uid}`, JSON.stringify(data));
+              }).catch(() => {});
             }
             
-            // Non-blocking expiration check
+            // Clean up: Check expirations non-blocking
             notificationService.checkDeviceExpirations(user.uid).catch(() => {});
           } else {
             setProfile(null);
           }
         } catch (error) {
-          console.error("Error synchronizing profile:", error);
+          console.error("Auth sync error:", error);
         } finally {
           if (isMounted) {
             setLoading(false);
+            // Instant hide if not first launch
+            const isFirstDone = localStorage.getItem('is_first_launch_done');
+            if (!isFirstDone) localStorage.setItem('is_first_launch_done', 'true');
             
-            // Hide native splash screen
-            // Reduced delay from 1000ms to 400ms for better perceived performance
-            const hideDelay = localStorage.getItem('is_first_launch_done') ? 400 : 1000;
-            
-            console.log(`[AuthContext] Loading finished. Hiding splash screen in ${hideDelay}ms...`);
             setTimeout(() => {
               SplashScreen.hide().catch(() => {});
-            }, hideDelay);
+            }, isFirstDone ? 50 : 500);
           }
         }
       });

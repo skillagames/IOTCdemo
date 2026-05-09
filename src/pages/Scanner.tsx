@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Scan, AlertCircle, CheckCircle2, Keyboard, Camera, ArrowRight, X } from 'lucide-react';
+import { Scan, AlertCircle, CheckCircle2, Keyboard, Camera, ArrowRight, X } from 'lucide-react';
+import { DeviceIcon } from '../components/DeviceIcon';
 import { deviceService } from '../services/deviceService';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -252,15 +253,17 @@ const Scanner: React.FC = () => {
               >
                 <div className="h-full w-full rounded-[40px] border-2 border-slate-900 bg-white p-6 flex flex-col shadow-2xl shadow-slate-900/15 overflow-hidden">
                   <div className="flex items-start justify-between">
-                    <div className="space-y-0.5">
-                      <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">Device Identified</h4>
-                      <p className="text-sm font-black tracking-tight text-slate-900 font-mono leading-none pt-1">SN: {deviceInfo?.serialNumber}</p>
-                      <div className="h-1 w-8 bg-emerald-400 rounded-full mt-2" />
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-emerald-50 text-emerald-600 shadow-sm">
+                        <DeviceIcon className="h-6 w-6" name={deviceInfo?.name} description={deviceInfo?.description} />
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">Device Identified</h4>
+                        <p className="text-sm font-black tracking-tight text-slate-900 font-mono leading-none pt-1">SN: {deviceInfo?.serialNumber}</p>
+                        <div className="h-1 w-8 bg-emerald-400 rounded-full mt-2" />
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-[12px] bg-emerald-50 text-emerald-600">
-                        <CheckCircle2 className="h-4 w-4" />
-                      </div>
                       <button onClick={() => setScanResult(null)} className="rounded-full bg-slate-50 p-1.5 text-slate-400 hover:bg-slate-100 transition-colors">
                         <X className="h-3.5 w-3.5" />
                       </button>

@@ -10,6 +10,7 @@ import {
   Scan,
   Radio,
   Home,
+  Network,
   User as UserIcon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -60,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Scan, label: 'Scan', path: '/scan' },
-    { icon: Radio, label: 'Alerts', path: '/alerts' },
+    { icon: Network, label: 'Devices', path: '/devices' },
     { icon: UserIcon, label: 'Profile', path: '/profile' },
   ];
 
@@ -132,7 +133,22 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
             </motion.div>
           </div>
           
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => navigate('/alerts')}
+              className={cn(
+                "rounded-full p-2 transition-colors relative",
+                location.pathname === '/alerts' ? "text-primary bg-primary/5" : "text-slate-300 hover:bg-slate-100 hover:text-primary"
+              )}
+            >
+              <Radio className="h-5 w-5" />
+              {alertCount > 0 && (
+                <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 border border-white"></span>
+                </span>
+              )}
+            </button>
             <button 
               onClick={handleLogout}
               className="rounded-full p-2 text-slate-300 hover:bg-slate-100 hover:text-red-500 transition-colors"
@@ -149,7 +165,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2 pb-safe">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -170,12 +186,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   <item.icon className={cn("h-6 w-6", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
                 </motion.div>
                 
-                {item.label === 'Alerts' && alertCount > 0 && (
-                  <span className="absolute right-3 top-2 flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 border border-white"></span>
-                  </span>
-                )}
+                {/* Notification indicator moved to top header */}
                 <span className={cn(
                   "text-[9px] uppercase tracking-[0.1em] font-black transition-all",
                   isActive ? "opacity-100 scale-100" : "opacity-60 scale-95"
