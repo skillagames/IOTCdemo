@@ -74,7 +74,7 @@ service cloud.firestore {
       allow update: if (isOwner(userId) || isAdmin()) && 
                      (
                        // Action: User self-update
-                       (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'showInsights', 'photoURL', 'fcmToken', 'tokenSource', 'lastTokenUpdate'])) ||
+                       (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'showInsights', 'photoURL', 'fcmToken', 'tokenSource', 'lastTokenUpdate', 'phoneNumber', 'address', 'lastLogin', 'tokenUpdatedAt'])) ||
                        // Action: Admin Management
                        (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName', 'showInsights']))
                      );
@@ -116,7 +116,7 @@ service cloud.firestore {
 
     match /master_registry/{id} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     match /plans/{planId} {

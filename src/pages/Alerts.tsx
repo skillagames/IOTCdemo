@@ -63,16 +63,16 @@ const Alerts: React.FC = () => {
         {/* Gradient Fade Layer */}
         <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
         
-        <header className="relative z-40 flex items-start justify-between px-1 pb-6">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">Device Alerts</h1>
+        <header className="relative z-40 px-1 pb-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Device Alerts</h1>
             <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Critical Connectivity Status</p>
           </div>
           
           <button 
             onClick={alerts.length > 0 ? handleDismissAll : handleRescan}
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-[18px] transition-all active:scale-90",
+              "absolute right-1 top-0 flex h-10 w-10 items-center justify-center rounded-[18px] transition-all active:scale-90",
               alerts.length > 0 
                 ? "bg-red-50 text-red-500 hover:bg-red-100" 
                 : "bg-emerald-50/50 text-emerald-500 hover:bg-emerald-100/50"

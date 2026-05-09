@@ -109,7 +109,12 @@ const Scanner: React.FC = () => {
     } catch (err: any) {
       console.error("Camera access failed", err);
       // Only set error if it's a real failure, not just a transition conflict
-      if (!err?.toString().includes("already under transition")) {
+      const errMsg = err?.toString() || "";
+      const isInterruptedError = errMsg.includes("already under transition") || 
+                                 errMsg.includes("media was removed from the document") || 
+                                 errMsg.includes("play() request was interrupted");
+      
+      if (!isInterruptedError) {
         setError("Camera access blocked or not found. Try manual entry.");
       }
       setCameraActive(false);
@@ -127,7 +132,7 @@ const Scanner: React.FC = () => {
         await html5QrCodeRef.current.stop();
         setCameraActive(false);
       } catch (err) {
-        console.error("Failed to stop scanner", err);
+        console.warn("Failed to stop scanner", err);
       } finally {
         isTransitioningRef.current = false;
       }
@@ -217,30 +222,66 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-170px)] space-y-6 py-2">
-      {/* Tab Switcher */}
-      <div className="flex gap-1 rounded-[20px] bg-slate-100 p-1 shrink-0">
-        <button 
-          onClick={() => { setActiveTab('scan'); setScanResult(null); setError(null); }}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 text-[10px] font-black uppercase tracking-widest transition-all",
-            activeTab === 'scan' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
-          )}
-        >
-          <Camera className="h-3.5 w-3.5" /> Scan Code
-        </button>
-        <button 
-          onClick={() => { setActiveTab('manual'); setScanResult(null); setError(null); }}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 text-[10px] font-black uppercase tracking-widest transition-all",
-            activeTab === 'manual' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"
-          )}
-        >
-          <Keyboard className="h-3.5 w-3.5" /> Manual Entry
-        </button>
+    <div className="-mt-4 flex flex-col h-[calc(100vh-130px)]">
+      <div className="sticky top-16 z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden shrink-0">
+        {/* Solid Background Layer */}
+        <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
+        {/* Gradient Fade Layer */}
+        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
+        
+        <header className="relative z-20 space-y-4 px-1 pb-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Add Device</h1>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hardware Integration</p>
+          </div>
+
+          {/* Tab Switcher */}
+          <div className="flex gap-1 rounded-[20px] bg-slate-50/80 p-1">
+            <button 
+              onClick={() => { setActiveTab('scan'); setScanResult(null); setError(null); }}
+              className={cn(
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                activeTab === 'scan' 
+                  ? "text-sky-900" 
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
+              )}
+            >
+              {activeTab === 'scan' && (
+                <motion.div
+                  layoutId="scannerTabIndicator"
+                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50/50 shadow-sm"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <Camera className={cn("h-3.5 w-3.5 transition-colors", activeTab === 'scan' ? "text-sky-400" : "text-slate-300 group-hover:text-slate-400")} /> Scan Code
+              </span>
+            </button>
+            <button 
+              onClick={() => { setActiveTab('manual'); setScanResult(null); setError(null); }}
+              className={cn(
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                activeTab === 'manual' 
+                  ? "text-sky-900" 
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
+              )}
+            >
+              {activeTab === 'manual' && (
+                <motion.div
+                  layoutId="scannerTabIndicator"
+                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50/50 shadow-sm"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <Keyboard className={cn("h-3.5 w-3.5 transition-colors", activeTab === 'manual' ? "text-sky-400" : "text-slate-300 group-hover:text-slate-400")} /> Manual Entry
+              </span>
+            </button>
+          </div>
+        </header>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 mt-2">
         <div className="w-full max-w-[340px]">
           <AnimatePresence mode="wait">
             {scanResult ? (
@@ -431,7 +472,7 @@ const Scanner: React.FC = () => {
                             if (error) setError(null);
                           }}
                           className={cn(
-                            "w-full rounded-[18px] bg-slate-50 border-2 px-5 py-3.5 text-sm font-bold font-mono tracking-widest text-slate-900 placeholder:text-slate-400/40 focus:bg-white focus:outline-none transition-all",
+                            "w-full rounded-[18px] bg-slate-50 border-2 px-5 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-900 placeholder:text-slate-400/40 focus:bg-white focus:outline-none transition-all",
                             error ? "border-red-500 bg-red-50/10 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : "border-slate-100 focus:border-slate-900 shadow-none"
                           ) }
                         />
@@ -454,7 +495,7 @@ const Scanner: React.FC = () => {
                       <button 
                         type="submit"
                         disabled={!manualCode.trim()}
-                        className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white transition-all active:scale-95 disabled:opacity-30 shadow-xl shadow-slate-900/10"
+                        className="flex py-3.5 w-full items-center justify-center gap-2 rounded-[18px] bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white transition-all active:scale-95 disabled:opacity-30 shadow-xl shadow-slate-950/10"
                       >
                         Verify Hardware <ArrowRight className="h-4 w-4" />
                       </button>

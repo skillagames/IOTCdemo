@@ -176,7 +176,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center gap-1 p-2 transition-colors relative group",
-                  isActive ? "text-primary" : "text-slate-400"
+                  isActive ? "text-sky-600" : "text-slate-400"
                 )}
               >
                 <motion.div
@@ -197,7 +197,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 {isActive && (
                   <motion.div 
                     layoutId="nav-underline"
-                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-primary"
+                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-sky-500"
                   />
                 )}
               </button>
