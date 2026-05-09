@@ -100,7 +100,7 @@ const Dashboard: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[32px] border border-slate-100 bg-white p-4 shadow-sm"
+          className="relative overflow-hidden rounded-[32px] p-4"
         >
           {/* Animated Cluster Network Background */}
           <div className="absolute -right-6 -top-12 text-slate-200/40 pointer-events-none z-0">
@@ -188,7 +188,7 @@ const Dashboard: React.FC = () => {
                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Cluster: Online</span>
               </div>
               <h1 className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
-                Hello, <span className="text-primary">{firstName}</span>
+                Hello, <span className="text-slate-500">{firstName}</span>
               </h1>
               <p className="text-[10px] font-medium text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis">
                 Your cluster is secure. {devices.filter(d => d.subscriptionStatus === 'active').length} active nodes running.
@@ -198,9 +198,9 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button 
                 onClick={() => navigate('/scan')}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl bg-slate-900 px-6 py-3 text-white transition-all active:scale-95 shadow-lg shadow-slate-900/10"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
-                <PlusCircle className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
+                <PlusCircle className="h-4 w-4 text-sky-400 group-hover:text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest">Add Device</span>
               </button>
               <button 
@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
                 className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
                 <Network className="h-4 w-4 text-sky-400 group-hover:text-sky-600 transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Inventory</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">All devices</span>
               </button>
             </div>
           </div>
@@ -458,7 +458,7 @@ const Dashboard: React.FC = () => {
           <img 
             src="/hikvision.svg" 
             alt="Hikvision Logo" 
-            className="h-5 w-auto object-contain"
+            className="h-5 w-auto object-contain grayscale opacity-40"
           />
         </div>
       </section>
