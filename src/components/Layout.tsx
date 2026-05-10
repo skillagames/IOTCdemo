@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Plus, 
-  Settings, 
-  ChevronLeft, 
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Plus,
+  Settings,
+  ChevronLeft,
   LayoutDashboard,
   ShieldCheck,
   LogOut,
@@ -11,13 +11,13 @@ import {
   Radio,
   Home,
   Network,
-  User as UserIcon
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { auth } from '../lib/firebase';
-import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
-import { notificationService } from '../services/notificationService';
+  User as UserIcon,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { auth } from "../lib/firebase";
+import { cn } from "../lib/utils";
+import { motion } from "motion/react";
+import { notificationService } from "../services/notificationService";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,18 +38,18 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       };
 
       checkAlerts();
-      
+
       // Listen for manual dismissals from within the app
-      window.addEventListener('alerts_updated', checkAlerts);
+      window.addEventListener("alerts_updated", checkAlerts);
       // Listen for dismissals/updates from other tabs
-      window.addEventListener('storage', checkAlerts);
+      window.addEventListener("storage", checkAlerts);
 
       // Periodic fallback check
       const interval = setInterval(checkAlerts, 60000);
 
       return () => {
-        window.removeEventListener('alerts_updated', checkAlerts);
-        window.removeEventListener('storage', checkAlerts);
+        window.removeEventListener("alerts_updated", checkAlerts);
+        window.removeEventListener("storage", checkAlerts);
         clearInterval(interval);
       };
     }
@@ -59,14 +59,18 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   const ENABLE_LOGO_ANIMATION = true;
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: Scan, label: 'Scan', path: '/scan' },
-    { icon: Network, label: 'Devices', path: '/devices' },
-    { icon: UserIcon, label: 'Profile', path: '/profile' },
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Scan, label: "Scan", path: "/scan" },
+    { icon: Network, label: "Devices", path: "/devices" },
+    { icon: UserIcon, label: "Profile", path: "/profile" },
   ];
 
   if (isAdmin) {
-    navItems.splice(2, 0, { icon: ShieldCheck, label: 'Admin', path: '/admin' });
+    navItems.splice(2, 0, {
+      icon: ShieldCheck,
+      label: "Admin",
+      path: "/admin",
+    });
   }
 
   const handleLogout = () => {
@@ -74,13 +78,13 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col pb-16">
+    <div className="flex min-h-dvh flex-col pb-16 overflow-x-hidden relative">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
           <div className="flex items-center">
             {showBack && (
-              <button 
+              <button
                 onClick={() => navigate(-1)}
                 className="rounded-full p-2 hover:bg-slate-100"
               >
@@ -89,26 +93,34 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
             )}
           </div>
 
-          <div 
-            onClick={() => navigate('/')}
+          <div
+            onClick={() => navigate("/")}
             className="absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-transform active:scale-95 group w-max"
           >
             <div className="flex items-center gap-0 whitespace-nowrap">
-              <motion.div 
-                initial={ENABLE_LOGO_ANIMATION ? { scale: 0.5, opacity: 0, rotate: -15 } : {}}
-                animate={ENABLE_LOGO_ANIMATION ? { scale: 1, opacity: 1, rotate: 0 } : {}}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 260, 
+              <motion.div
+                initial={
+                  ENABLE_LOGO_ANIMATION
+                    ? { scale: 0.5, opacity: 0, rotate: -15 }
+                    : {}
+                }
+                animate={
+                  ENABLE_LOGO_ANIMATION
+                    ? { scale: 1, opacity: 1, rotate: 0 }
+                    : {}
+                }
+                transition={{
+                  type: "spring",
+                  stiffness: 260,
                   damping: 20,
-                  delay: 0.1
+                  delay: 0.1,
                 }}
                 className="bg-black text-white w-7 h-7 flex items-center justify-center rounded-[4px] font-black text-[20px] leading-none shadow-sm"
               >
                 IO
               </motion.div>
               <div className="flex flex-col leading-none">
-                <motion.span 
+                <motion.span
                   initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
                   animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
                   transition={{ delay: 0.2, duration: 0.5 }}
@@ -118,27 +130,35 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 </motion.span>
               </div>
             </div>
-            
+
             <motion.div
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
               animate={ENABLE_LOGO_ANIMATION ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.5 }}
               className="mt-0.5 flex w-full justify-between items-center origin-top"
             >
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">global</span>
+              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+                global
+              </span>
               <span className="text-[7px] font-light text-slate-200">|</span>
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">iot</span>
+              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+                iot
+              </span>
               <span className="text-[7px] font-light text-slate-200">|</span>
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">connectivity</span>
+              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+                connectivity
+              </span>
             </motion.div>
           </div>
-          
+
           <div className="flex items-center gap-1">
-            <button 
-              onClick={() => navigate('/alerts')}
+            <button
+              onClick={() => navigate("/alerts")}
               className={cn(
                 "rounded-full p-2 transition-colors relative",
-                location.pathname === '/alerts' ? "text-primary bg-primary/5" : "text-slate-300 hover:bg-slate-100 hover:text-primary"
+                location.pathname === "/alerts"
+                  ? "text-primary bg-primary/5"
+                  : "text-slate-300 hover:bg-slate-100 hover:text-primary",
               )}
             >
               <Radio className="h-5 w-5" />
@@ -149,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 </span>
               )}
             </button>
-            <button 
+            <button
               onClick={handleLogout}
               className="rounded-full p-2 text-slate-300 hover:bg-slate-100 hover:text-red-500 transition-colors"
             >
@@ -169,33 +189,42 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
         <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2 pb-safe">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
-            
+
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center gap-1 p-2 transition-colors relative group",
-                  isActive ? "text-sky-600" : "text-slate-400"
+                  isActive ? "text-sky-600" : "text-slate-400",
                 )}
               >
                 <motion.div
-                  animate={isActive ? { scale: 1.2, y: -2 } : { scale: 1, y: 0 }}
+                  animate={
+                    isActive ? { scale: 1.2, y: -2 } : { scale: 1, y: 0 }
+                  }
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  <item.icon className={cn("h-6 w-6", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+                  <item.icon
+                    className={cn(
+                      "h-6 w-6",
+                      isActive ? "stroke-[2.5px]" : "stroke-[2px]",
+                    )}
+                  />
                 </motion.div>
-                
+
                 {/* Notification indicator moved to top header */}
-                <span className={cn(
-                  "text-[9px] uppercase tracking-[0.1em] font-black transition-all",
-                  isActive ? "opacity-100 scale-100" : "opacity-60 scale-95"
-                )}>
+                <span
+                  className={cn(
+                    "text-[9px] uppercase tracking-[0.1em] font-black transition-all",
+                    isActive ? "opacity-100 scale-100" : "opacity-60 scale-95",
+                  )}
+                >
                   {item.label}
                 </span>
-                
+
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="nav-underline"
                     className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-sky-500"
                   />

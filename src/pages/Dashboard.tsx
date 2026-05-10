@@ -110,7 +110,7 @@ const Dashboard: React.FC = () => {
     : devices;
 
   return (
-    <div className="pb-0">
+    <div className="pb-0 min-h-screen">
       {/* Hero Welcome Section - Compressed Sleek Header */}
       <section className="pt-4 pb-4">
         <motion.div
@@ -128,6 +128,7 @@ const Dashboard: React.FC = () => {
                 width="240"
                 height="240"
                 viewBox="0 0 24 24"
+                overflow="visible"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="0.5"
@@ -272,19 +273,19 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={() => navigate("/scan")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
-                <PlusCircle className="h-4 w-4 text-sky-600 transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <PlusCircle className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                   Add Device
                 </span>
               </button>
               <button
                 onClick={() => navigate("/devices")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
               >
-                <Network className="h-4 w-4 text-sky-600 transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <Network className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                   All devices
                 </span>
               </button>
