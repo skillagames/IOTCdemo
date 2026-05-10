@@ -168,7 +168,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setLoading(false);
 
             // Consistently hide the splash screen so native edge-to-edge UI stabilizes the same way on cold and warm starts
-            setTimeout(() => {
+            setTimeout(async () => {
+              try {
+                const { StatusBar, Style } =
+                  await import("@capacitor/status-bar");
+                await StatusBar.setOverlaysWebView({ overlay: false });
+                await StatusBar.setBackgroundColor({ color: "#ffffff" });
+                await StatusBar.setStyle({ style: Style.Light });
+              } catch (e) {
+                // Ignore web
+              }
               SplashScreen.hide().catch(() => {});
             }, 100);
           }
@@ -178,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // 2. Register Back Button Listener (Double back to exit)
       const { App } = await import("@capacitor/app");
       const { Toast } = await import("@capacitor/toast");
+
       backButtonListener = await App.addListener(
         "backButton",
         ({ canGoBack }) => {

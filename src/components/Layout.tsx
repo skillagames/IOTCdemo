@@ -78,9 +78,9 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col pb-16 overflow-x-clip relative">
+    <div className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] overflow-x-clip relative">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4">
           <div className="flex items-center">
             {showBack && (
@@ -180,13 +180,13 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-4 px-safe">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-4 px-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]">
         {children}
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2 min-h-16">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
 
