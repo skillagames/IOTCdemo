@@ -169,15 +169,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
             // Consistently hide the splash screen so native edge-to-edge UI stabilizes the same way on cold and warm starts
             setTimeout(async () => {
-              try {
-                const { StatusBar, Style } =
-                  await import("@capacitor/status-bar");
-                await StatusBar.setOverlaysWebView({ overlay: false });
-                await StatusBar.setBackgroundColor({ color: "#ffffff" });
-                await StatusBar.setStyle({ style: Style.Light });
-              } catch (e) {
-                // Ignore web
-              }
               SplashScreen.hide()
                 .then(() => {
                   // Force webview size recalculation on first launch after splash screen hides

@@ -58,7 +58,7 @@ const Alerts: React.FC = () => {
 
   return (
     <div className="-mt-4 min-h-screen pb-12">
-      <div className="sticky top-16 z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
         {/* Solid Background Layer */}
         <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}
@@ -254,7 +254,7 @@ const Alerts: React.FC = () => {
 
         {/* Quick Actions - Constrained sticky behavior correctly stopping before the header */}
         {alerts.length > 0 && (
-          <div className="sticky top-[160px] z-20 w-full mt-12 mb-4 px-1">
+          <div className="sticky top-[calc(160px+env(safe-area-inset-top))] z-20 w-full mt-12 mb-4 px-1">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
