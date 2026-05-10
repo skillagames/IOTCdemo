@@ -32,6 +32,16 @@ const Dashboard: React.FC = () => {
   const insightsRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const isAutoScrolling = useRef(false);
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    isAutoScrolling.current = true;
+    setFilter(newFilter);
+    setTimeout(() => {
+      isAutoScrolling.current = false;
+      window.dispatchEvent(new Event("scroll"));
+    }, 1000);
+  };
 
   useEffect(() => {
     if (user) {
@@ -47,8 +57,8 @@ const Dashboard: React.FC = () => {
       const offset = scrollAnchorRef.current.offsetTop - 64;
       const currentScroll = window.scrollY;
 
-      // Only scroll down if the inventory isn't in view yet (user is at the very top)
-      if (currentScroll < offset - 60) {
+      // Scroll if the inventory isn't in view (either user is at the top or below the section)
+      if (currentScroll < offset - 60 || currentScroll > offset + 60) {
         window.scrollTo({ top: offset, behavior: "smooth" });
       }
 
@@ -67,6 +77,8 @@ const Dashboard: React.FC = () => {
       } else {
         setIsSticky(false);
       }
+
+      if (isAutoScrolling.current) return;
 
       // Hide sticky header when reaching insights section or bottom of page
       const insightsTop = insightsRef.current?.offsetTop ?? Infinity;
@@ -350,7 +362,9 @@ const Dashboard: React.FC = () => {
             color="emerald"
             icon={Signal}
             isActive={filter === "active"}
-            onClick={() => setFilter(filter === "active" ? null : "active")}
+            onClick={() =>
+              handleFilterChange(filter === "active" ? null : "active")
+            }
           />
           <StatCard
             label="EXPIRED"
@@ -360,7 +374,9 @@ const Dashboard: React.FC = () => {
             color="red"
             icon={AlertCircle}
             isActive={filter === "expired"}
-            onClick={() => setFilter(filter === "expired" ? null : "expired")}
+            onClick={() =>
+              handleFilterChange(filter === "expired" ? null : "expired")
+            }
           />
           <StatCard
             label="INACTIVE"
@@ -370,7 +386,9 @@ const Dashboard: React.FC = () => {
             color="slate"
             icon={Activity}
             isActive={filter === "inactive"}
-            onClick={() => setFilter(filter === "inactive" ? null : "inactive")}
+            onClick={() =>
+              handleFilterChange(filter === "inactive" ? null : "inactive")
+            }
           />
         </div>
 
@@ -384,7 +402,7 @@ const Dashboard: React.FC = () => {
                 <motion.button
                   initial={{ opacity: 0, scale: 0.9, x: -5 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
-                  onClick={() => setFilter(null)}
+                  onClick={() => handleFilterChange(null)}
                   className={cn(
                     "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
                     filter === "active" &&
