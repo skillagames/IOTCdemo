@@ -80,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   return (
     <div className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] overflow-x-clip relative">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4 relative">
           <div className="flex items-center">
             {showBack && (

@@ -63,7 +63,7 @@ const Devices: React.FC = () => {
 
   return (
     <div className="-mt-4">
-      <div className="sticky top-[4rem] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
         {/* Solid Background Layer */}
         <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}

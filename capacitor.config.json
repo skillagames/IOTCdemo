@@ -12,9 +12,9 @@
       "showSpinner": false
     },
     "StatusBar": {
-      "overlaysWebView": false,
+      "overlaysWebView": true,
       "style": "LIGHT",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff00"
     }
   }
 }

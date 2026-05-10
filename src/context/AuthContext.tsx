@@ -189,6 +189,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       App.addListener("appStateChange", async ({ isActive }) => {
         if (isActive) {
+          // Force Edge-to-Edge overlay mode whenever app resumes
+          try {
+            const { StatusBar, Style } = await import("@capacitor/status-bar");
+            await StatusBar.setOverlaysWebView({ overlay: true });
+            await StatusBar.setStyle({ style: Style.Light });
+          } catch (e) {
+            // ignore web
+          }
+
           // Force layout recalculations on resume to normalize safe-area values
           setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
           setTimeout(() => window.dispatchEvent(new Event("resize")), 300);

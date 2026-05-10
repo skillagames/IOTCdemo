@@ -34,6 +34,7 @@ body {
   background-color: #f4f7fa; /* Matches color-bg-main */
   color: #1e293b; /* Matches slate-800 */
   overflow-x: hidden;
+  --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
 }
 
