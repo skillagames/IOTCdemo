@@ -167,8 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (isMounted) {
             setLoading(false);
 
-            // Consistently hide the splash screen so native edge-to-edge UI stabilizes the same way on cold and warm starts
-            setTimeout(async () => {
+            // Consistently hide the splash screen
+            setTimeout(() => {
               SplashScreen.hide()
                 .then(() => {
                   // Force webview size recalculation on first launch after splash screen hides
@@ -183,23 +183,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
 
-      // 2. Register Back Button Listener and App State Listener
+      // 2. Register Back Button Listener (Double back to exit)
       const { App } = await import("@capacitor/app");
       const { Toast } = await import("@capacitor/toast");
-
-      App.addListener("appStateChange", async ({ isActive }) => {
-        if (isActive) {
-          // On warm starts, Android can sometimes lose the edge-to-edge configuration, 
-          // adding window margins that double up with our CSS env() padding. Force it.
-          try {
-            const { StatusBar, Style } = await import("@capacitor/status-bar");
-            await StatusBar.setOverlaysWebView({ overlay: true });
-            await StatusBar.setStyle({ style: Style.Light });
-          } catch (e) {
-            // Ignore web
-          }
-        }
-      });
 
       backButtonListener = await App.addListener(
         "backButton",
