@@ -97,7 +97,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     let lastTimeBackPress = 0;
 
     const init = async () => {
-      // 1. Background Firebase setup - no longer blocking the whole flow
+      // 1. Force Edge-to-Edge overlay mode as early as possible
+      try {
+        const { StatusBar, Style } = await import("@capacitor/status-bar");
+        await StatusBar.setOverlaysWebView({ overlay: true });
+        await StatusBar.show(); // Ensure bar is active but overlaying
+        await StatusBar.setStyle({ style: Style.Light });
+      } catch (e) {
+        // ignore for web
+      }
+
+      // 2. Background Firebase setup - no longer blocking the whole flow
       import("../lib/firebase").then(({ initializeFirebaseConnection }) => {
         initializeFirebaseConnection().catch(() => {});
       });
@@ -168,14 +178,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setLoading(false);
 
             // Consistently hide the splash screen
-            setTimeout(() => {
+            setTimeout(async () => {
+              try {
+                const { StatusBar, Style } = await import("@capacitor/status-bar");
+                await StatusBar.setOverlaysWebView({ overlay: true });
+                await StatusBar.show();
+                await StatusBar.setStyle({ style: Style.Light });
+              } catch (e) {
+                // ignore
+              }
               SplashScreen.hide()
                 .then(() => {
                   // Force webview size recalculation on first launch after splash screen hides
-                  setTimeout(
-                    () => window.dispatchEvent(new Event("resize")),
-                    100,
-                  );
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event("resize"));
+                    // Double check layout after a short delay
+                    setTimeout(() => window.dispatchEvent(new Event("resize")), 200);
+                  }, 100);
                 })
                 .catch(() => {});
             }, 100);
@@ -193,6 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           try {
             const { StatusBar, Style } = await import("@capacitor/status-bar");
             await StatusBar.setOverlaysWebView({ overlay: true });
+            await StatusBar.show();
             await StatusBar.setStyle({ style: Style.Light });
           } catch (e) {
             // ignore web
@@ -201,6 +221,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Force layout recalculations on resume to normalize safe-area values
           setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
           setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
+          setTimeout(() => window.dispatchEvent(new Event("resize")), 600);
+          setTimeout(() => window.dispatchEvent(new Event("resize")), 1000);
         }
       });
 
