@@ -500,7 +500,7 @@ const Dashboard: React.FC = () => {
             {/* Health Overview Container */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Operational Status Card */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-sm p-6 flex flex-col justify-between group">
+              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-bg-main shadow-sm p-6 flex flex-col justify-between group">
                 <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-20 group-hover:opacity-10 transition-opacity">
                   <Activity
                     className="w-24 h-24 text-slate-200"
@@ -552,7 +552,7 @@ const Dashboard: React.FC = () => {
                         stroke="currentColor"
                         strokeWidth="6"
                         fill="transparent"
-                        className="text-slate-50"
+                        className="text-slate-300"
                       />
                       <circle
                         cx="36"
@@ -616,7 +616,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Recent Activity Timeline */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-sm p-6 flex flex-col">
+              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-bg-main shadow-sm p-6 flex flex-col">
                 <div className="absolute -top-12 -right-6 h-32 w-32 rounded-full bg-blue-50/50" />
                 <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald-50/50" />
 
