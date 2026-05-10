@@ -10,7 +10,10 @@
       "backgroundColor": "#ffffff",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "LIGHT"
     }
   }
 }
-
