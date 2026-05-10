@@ -192,15 +192,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Force layout recalculations on resume to normalize safe-area values
           setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
           setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
-          
-          try {
-            const { StatusBar, Style } = await import("@capacitor/status-bar");
-            // Re-apply overlay to prevent Android from double-padding
-            await StatusBar.setOverlaysWebView({ overlay: true });
-            await StatusBar.setStyle({ style: Style.Light });
-          } catch (e) {
-            // ignore
-          }
         }
       });
 
