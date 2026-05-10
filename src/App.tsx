@@ -1,23 +1,29 @@
-import React, { useEffect, ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Layout from './components/Layout';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Devices from './pages/Devices';
-import DeviceDetails from './pages/DeviceDetails';
-import Scanner from './pages/Scanner';
-import Admin from './pages/Admin';
-import Profile from './pages/Profile';
-import Alerts from './pages/Alerts';
-import { motion, AnimatePresence } from 'motion/react';
-import { notificationService } from './services/notificationService';
-import { SyncScreen } from './components/SyncScreen';
+import React, { useEffect, ReactNode } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Devices from "./pages/Devices";
+import DeviceDetails from "./pages/DeviceDetails";
+import Scanner from "./pages/Scanner";
+import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
+import Alerts from "./pages/Alerts";
+import { motion, AnimatePresence } from "motion/react";
+import { notificationService } from "./services/notificationService";
+import { SyncScreen } from "./components/SyncScreen";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  
+
   if (!user) return <Navigate to="/login" />;
   return <>{children}</>;
 };
@@ -25,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 // Admin Route Component
 const AdminRoute = ({ children }: { children: ReactNode }) => {
   const { user, isAdmin } = useAuth();
-  
+
   if (!user || !isAdmin) return <Navigate to="/" />;
   return <>{children}</>;
 };
@@ -57,76 +63,97 @@ const AppContent = () => {
     <div className="min-h-dvh bg-bg-main font-sans text-slate-800">
       <Routes>
         <Route path="/login" element={<Login />} />
-        
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Layout>
-              <PageTransition>
-                <Dashboard />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
 
-        <Route path="/devices/:id" element={
-          <ProtectedRoute>
-            <Layout showBack>
-              <PageTransition>
-                <DeviceDetails />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageTransition>
+                  <Dashboard />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/devices" element={
-          <ProtectedRoute>
-            <Layout showBack>
-              <PageTransition>
-                <Devices />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/devices/:id"
+          element={
+            <ProtectedRoute>
+              <Layout showBack>
+                <PageTransition>
+                  <DeviceDetails />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/scan" element={
-          <ProtectedRoute>
-            <Layout showBack>
-              <PageTransition>
-                <Scanner />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/devices"
+          element={
+            <ProtectedRoute>
+              <Layout showBack>
+                <PageTransition>
+                  <Devices />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/admin" element={
-          <AdminRoute>
-            <Layout showBack>
-              <PageTransition>
-                <Admin />
-              </PageTransition>
-            </Layout>
-          </AdminRoute>
-        } />
+        <Route
+          path="/scan"
+          element={
+            <ProtectedRoute>
+              <Layout showBack>
+                <PageTransition>
+                  <Scanner />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Layout>
-              <PageTransition>
-                <Profile />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Layout showBack>
+                <PageTransition>
+                  <Admin />
+                </PageTransition>
+              </Layout>
+            </AdminRoute>
+          }
+        />
 
-        <Route path="/alerts" element={
-          <ProtectedRoute>
-            <Layout>
-              <PageTransition>
-                <Alerts />
-              </PageTransition>
-            </Layout>
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageTransition>
+                  <Profile />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alerts"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageTransition>
+                  <Alerts />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

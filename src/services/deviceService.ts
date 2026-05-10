@@ -1,21 +1,21 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  addDoc,
+  updateDoc,
   deleteDoc,
   writeBatch,
   serverTimestamp,
   orderBy,
-  limit
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { addDays } from 'date-fns';
-import { handleFirestoreError, OperationType } from '../lib/utils';
+  limit,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { addDays } from "date-fns";
+import { handleFirestoreError, OperationType } from "../lib/utils";
 
 export interface Device {
   id: string;
@@ -25,7 +25,7 @@ export interface Device {
   name: string;
   description?: string;
   ownerId: string;
-  subscriptionStatus: 'active' | 'expired' | 'inactive';
+  subscriptionStatus: "active" | "expired" | "inactive";
   expirationDate: any;
   planId: string;
   lastUpdated: any;
@@ -41,11 +41,13 @@ export interface UsageStat {
 
 export const deviceService = {
   async getUserDevices(userId: string) {
-    const path = 'devices';
+    const path = "devices";
     try {
-      const q = query(collection(db, path), where('ownerId', '==', userId));
+      const q = query(collection(db, path), where("ownerId", "==", userId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Device));
+      return querySnapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as Device,
+      );
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
       return [];
@@ -55,7 +57,7 @@ export const deviceService = {
   async getDeviceById(deviceId: string) {
     const path = `devices/${deviceId}`;
     try {
-      const docRef = doc(db, 'devices', deviceId);
+      const docRef = doc(db, "devices", deviceId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as Device;
@@ -67,14 +69,19 @@ export const deviceService = {
     }
   },
 
-  async registerDevice(data: Omit<Device, 'id' | 'subscriptionStatus' | 'expirationDate' | 'lastUpdated'>) {
-    const path = 'devices';
+  async registerDevice(
+    data: Omit<
+      Device,
+      "id" | "subscriptionStatus" | "expirationDate" | "lastUpdated"
+    >,
+  ) {
+    const path = "devices";
     try {
       const newDevice = {
         ...data,
-        imei: (data as any).imei || 'N/A',
-        iccid: (data as any).iccid || 'N/A',
-        subscriptionStatus: 'inactive', // New devices start as not active
+        imei: (data as any).imei || "N/A",
+        iccid: (data as any).iccid || "N/A",
+        subscriptionStatus: "inactive", // New devices start as not active
         expirationDate: null, // No expiration yet
         lastUpdated: serverTimestamp(),
       };
@@ -87,7 +94,10 @@ export const deviceService = {
   },
 
   async verifyHardware(serialNumber: string) {
-    const q = query(collection(db, 'master_registry'), where('serialNumber', '==', serialNumber));
+    const q = query(
+      collection(db, "master_registry"),
+      where("serialNumber", "==", serialNumber),
+    );
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
     return querySnapshot.docs[0].data();
@@ -95,29 +105,32 @@ export const deviceService = {
 
   async seedMasterRegistry() {
     // Only run if not already seeded in this session to prevent redundant network calls
-    const isSeededInSession = sessionStorage.getItem('master_registry_seeded');
+    const isSeededInSession = sessionStorage.getItem("master_registry_seeded");
     if (isSeededInSession) return;
 
     try {
-      const registryRef = collection(db, 'master_registry');
-      const q = query(registryRef, where('serialNumber', '==', '6001237010828'));
-      
+      const registryRef = collection(db, "master_registry");
+      const q = query(
+        registryRef,
+        where("serialNumber", "==", "6001237010828"),
+      );
+
       // Use getDoc if possible, or trust local state if we've already done this recently
       const snapshot = await getDocs(q);
-      
+
       const masterData = {
-        serialNumber: '6001237010828',
-        imei: '358762109845321',
-        iccid: '89014103211185101234',
-        model: 'IoT-Hub-X1',
-        manufacturer: 'IoTConnect Labs',
-        lastSeeded: serverTimestamp()
+        serialNumber: "6001237010828",
+        imei: "358762109845321",
+        iccid: "89014103211185101234",
+        model: "IoT-Hub-X1",
+        manufacturer: "IoTConnect Labs",
+        lastSeeded: serverTimestamp(),
       };
 
       if (snapshot.empty) {
         await addDoc(registryRef, {
           ...masterData,
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
         });
         console.log("Master Registry: New test device provisioned.");
       } else {
@@ -125,19 +138,22 @@ export const deviceService = {
         // For now, let's just mark as done and avoid the extra updateDoc call if it already exists
         console.log("Master Registry: Test device verified.");
       }
-      
-      sessionStorage.setItem('master_registry_seeded', 'true');
+
+      sessionStorage.setItem("master_registry_seeded", "true");
     } catch (e) {
-      console.warn("Master Registry Sync: Only operators can provision global hardware keys.", e);
+      console.warn(
+        "Master Registry Sync: Only operators can provision global hardware keys.",
+        e,
+      );
     }
   },
 
   async renewSubscription(deviceId: string, days: number = 30) {
     const path = `devices/${deviceId}`;
     try {
-      const deviceRef = doc(db, 'devices', deviceId);
+      const deviceRef = doc(db, "devices", deviceId);
       await updateDoc(deviceRef, {
-        subscriptionStatus: 'active',
+        subscriptionStatus: "active",
         expirationDate: addDays(new Date(), days),
         lastUpdated: serverTimestamp(),
       });
@@ -150,23 +166,28 @@ export const deviceService = {
     const path = `devices/${deviceId}/usage`;
     try {
       const q = query(
-        collection(db, 'devices', deviceId, 'usage'),
-        orderBy('timestamp', 'desc'),
-        limit(30)
+        collection(db, "devices", deviceId, "usage"),
+        orderBy("timestamp", "desc"),
+        limit(30),
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        // Convert Firestore Timestamp to millis for better chart sorting/rendering
-        const timestamp = data.timestamp?.toMillis?.() || 
-                         (data.timestamp?.seconds ? data.timestamp.seconds * 1000 : Date.now());
-        
-        return { 
-          id: doc.id, 
-          ...data, 
-          timestamp 
-        } as UsageStat;
-      }).reverse();
+      return querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          // Convert Firestore Timestamp to millis for better chart sorting/rendering
+          const timestamp =
+            data.timestamp?.toMillis?.() ||
+            (data.timestamp?.seconds
+              ? data.timestamp.seconds * 1000
+              : Date.now());
+
+          return {
+            id: doc.id,
+            ...data,
+            timestamp,
+          } as UsageStat;
+        })
+        .reverse();
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
       return [];
@@ -176,7 +197,7 @@ export const deviceService = {
   async toggleAutoRenew(deviceId: string, enabled: boolean) {
     const path = `devices/${deviceId}`;
     try {
-      const deviceRef = doc(db, 'devices', deviceId);
+      const deviceRef = doc(db, "devices", deviceId);
       await updateDoc(deviceRef, {
         autoRenew: enabled,
         lastUpdated: serverTimestamp(),
@@ -187,10 +208,12 @@ export const deviceService = {
   },
 
   async getAllDevices() {
-    const path = 'devices';
+    const path = "devices";
     try {
       const querySnapshot = await getDocs(collection(db, path));
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Device));
+      return querySnapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as Device,
+      );
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
       return [];
@@ -200,11 +223,11 @@ export const deviceService = {
   async syncTelemetry(deviceId: string) {
     const path = `devices/${deviceId}/usage`;
     try {
-      const usageCollection = collection(db, 'devices', deviceId, 'usage');
+      const usageCollection = collection(db, "devices", deviceId, "usage");
       await addDoc(usageCollection, {
         timestamp: new Date(),
         dataUsedMb: Math.floor(Math.random() * 50) + 10,
-        activeHours: 1
+        activeHours: 1,
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
@@ -215,16 +238,18 @@ export const deviceService = {
     const path = `devices/${deviceId}`;
     try {
       const batch = writeBatch(db);
-      
+
       // Delete usage subcollection
-      const usageQ = await getDocs(collection(db, 'devices', deviceId, 'usage'));
-      usageQ.docs.forEach(usageDoc => {
+      const usageQ = await getDocs(
+        collection(db, "devices", deviceId, "usage"),
+      );
+      usageQ.docs.forEach((usageDoc) => {
         batch.delete(usageDoc.ref);
       });
-      
+
       // Delete the device itself
-      batch.delete(doc(db, 'devices', deviceId));
-      
+      batch.delete(doc(db, "devices", deviceId));
+
       await batch.commit();
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, path);
@@ -232,15 +257,15 @@ export const deviceService = {
   },
 
   async seedDeviceUsage(deviceId: string) {
-    const usageCollection = collection(db, 'devices', deviceId, 'usage');
+    const usageCollection = collection(db, "devices", deviceId, "usage");
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(date.getDate() - (13 - i));
-      
+
       await addDoc(usageCollection, {
         timestamp: date,
         dataUsedMb: Math.floor(Math.random() * 450) + 50,
-        activeHours: Math.floor(Math.random() * 12) + 2
+        activeHours: Math.floor(Math.random() * 12) + 2,
       });
     }
   },
@@ -318,7 +343,7 @@ export const deviceService = {
         iccid: "89987654321098765432",
         subscriptionStatus: "inactive",
         expirationDate: addDays(new Date(), -10),
-      }
+      },
     ];
 
     for (const device of dummyDevices) {
@@ -329,21 +354,21 @@ export const deviceService = {
         planId: "standard-plan",
         lastUpdated: serverTimestamp(),
       };
-      
-      const docRef = doc(collection(db, 'devices'));
+
+      const docRef = doc(collection(db, "devices"));
       batch.set(docRef, newDevice);
-      
+
       // Seed 14 days of usage stats for each device
-      const usageCollection = collection(db, 'devices', docRef.id, 'usage');
+      const usageCollection = collection(db, "devices", docRef.id, "usage");
       for (let i = 0; i < 14; i++) {
         const date = new Date();
         date.setDate(date.getDate() - (13 - i));
-        
+
         const usageRef = doc(usageCollection);
         batch.set(usageRef, {
           timestamp: date,
           dataUsedMb: Math.floor(Math.random() * 450) + 50,
-          activeHours: Math.floor(Math.random() * 12) + 2
+          activeHours: Math.floor(Math.random() * 12) + 2,
         });
       }
       await batch.commit();
@@ -351,19 +376,21 @@ export const deviceService = {
   },
 
   async deleteAllDevices(userId: string) {
-    const q = query(collection(db, 'devices'), where('ownerId', '==', userId));
+    const q = query(collection(db, "devices"), where("ownerId", "==", userId));
     const querySnapshot = await getDocs(q);
-    
+
     for (const docSnap of querySnapshot.docs) {
       const batch = writeBatch(db);
       // Also delete usage subcollection for each device
-      const usageQ = await getDocs(collection(db, 'devices', docSnap.id, 'usage'));
-      usageQ.docs.forEach(usageDoc => {
+      const usageQ = await getDocs(
+        collection(db, "devices", docSnap.id, "usage"),
+      );
+      usageQ.docs.forEach((usageDoc) => {
         batch.delete(usageDoc.ref);
       });
-      
+
       batch.delete(docSnap.ref);
       await batch.commit();
     }
-  }
+  },
 };

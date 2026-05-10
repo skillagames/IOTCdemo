@@ -1,8 +1,15 @@
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { handleFirestoreError, OperationType } from '../lib/utils';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { PushNotifications } from '@capacitor/push-notifications';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { handleFirestoreError, OperationType } from "../lib/utils";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { PushNotifications } from "@capacitor/push-notifications";
 
 export interface NotificationOptions {
   title: string;
@@ -15,35 +22,40 @@ class NotificationService {
   constructor() {}
 
   public async initializeChannels() {
-    const channelId = 'primary_notifications_v4';
-    
+    const channelId = "primary_notifications_v4";
+
     try {
       const w = window as any;
       // Only execute if we are on a native platform where channels matter (Android)
       if (w.Capacitor?.isNativePlatform()) {
         const channelConfig = {
           id: channelId,
-          name: 'Primary Notifications',
-          description: 'General notifications',
+          name: "Primary Notifications",
+          description: "General notifications",
           importance: 5, // IMPORTANCE_HIGH (Heads-up)
           visibility: 1, // VISIBILITY_PUBLIC
           vibration: true,
-          sound: 'default'
+          sound: "default",
         };
 
         // Initialize Local notification channel
         await LocalNotifications.createChannel(channelConfig);
-        
+
         // Initialize Push notification channel (for Firebase FCM)
         await PushNotifications.createChannel(channelConfig);
-        
-        console.log(`[NotificationService] Channel ${channelId} initialized successfully`);
+
+        console.log(
+          `[NotificationService] Channel ${channelId} initialized successfully`,
+        );
 
         // Request Push Notification permissions and register
         await this.setupPushNotifications();
       }
     } catch (e) {
-      console.error('[NotificationService] Failed to create notification channel:', e);
+      console.error(
+        "[NotificationService] Failed to create notification channel:",
+        e,
+      );
     }
   }
 
@@ -51,38 +63,45 @@ class NotificationService {
     try {
       let permStatus = await PushNotifications.checkPermissions();
 
-      if (permStatus.receive === 'prompt') {
+      if (permStatus.receive === "prompt") {
         permStatus = await PushNotifications.requestPermissions();
       }
 
-      if (permStatus.receive !== 'granted') {
-        console.warn('User denied push notification permissions');
+      if (permStatus.receive !== "granted") {
+        console.warn("User denied push notification permissions");
         return;
       }
 
       await PushNotifications.register();
 
       // Listen for registration code to get the FCM token
-      PushNotifications.addListener('registration', (token) => {
-        console.log('Push registration success, token: ' + token.value);
-        localStorage.setItem('pending_native_token', token.value);
-        window.dispatchEvent(new CustomEvent('fcm_token_ready', { detail: token.value }));
+      PushNotifications.addListener("registration", (token) => {
+        console.log("Push registration success, token: " + token.value);
+        localStorage.setItem("pending_native_token", token.value);
+        window.dispatchEvent(
+          new CustomEvent("fcm_token_ready", { detail: token.value }),
+        );
       });
 
-      PushNotifications.addListener('registrationError', (error: any) => {
-        console.error('Error on registration: ' + JSON.stringify(error));
+      PushNotifications.addListener("registrationError", (error: any) => {
+        console.error("Error on registration: " + JSON.stringify(error));
       });
 
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
-        console.log('Push received: ', notification);
-      });
+      PushNotifications.addListener(
+        "pushNotificationReceived",
+        (notification) => {
+          console.log("Push received: ", notification);
+        },
+      );
 
-      PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-        console.log('Push action performed: ', notification);
-      });
-
+      PushNotifications.addListener(
+        "pushNotificationActionPerformed",
+        (notification) => {
+          console.log("Push action performed: ", notification);
+        },
+      );
     } catch (e) {
-      console.error('Error setting up push notifications:', e);
+      console.error("Error setting up push notifications:", e);
     }
   }
 
@@ -90,21 +109,26 @@ class NotificationService {
     // Support Capacitor Local Notifications
     try {
       const w = window as any;
-      if (w.Capacitor?.isNativePlatform() || w.Capacitor?.getPlatform() === 'web') {
-        await LocalNotifications.schedule({ 
-          notifications: [{ 
-            title: options.title, 
-            body: options.body, 
-            id: Math.floor(Math.random() * 2147483647),
-            channelId: 'primary_notifications_v4',
-            vibration: true,
-            smallIcon: 'ic_stat_notification',
-            schedule: { at: new Date(Date.now() + 100) } // Slight delay to ensure processing
-          }] 
+      if (
+        w.Capacitor?.isNativePlatform() ||
+        w.Capacitor?.getPlatform() === "web"
+      ) {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: options.title,
+              body: options.body,
+              id: Math.floor(Math.random() * 2147483647),
+              channelId: "primary_notifications_v4",
+              vibration: true,
+              smallIcon: "ic_stat_notification",
+              schedule: { at: new Date(Date.now() + 100) }, // Slight delay to ensure processing
+            },
+          ],
         });
       }
     } catch (e) {
-      console.warn('Capacitor notification failed:', e);
+      console.warn("Capacitor notification failed:", e);
     }
   }
 
@@ -112,12 +136,15 @@ class NotificationService {
     if (!userId || !token) return false;
     const path = `users/${userId}`;
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      await updateDoc(doc(db, "users", userId), {
         fcmToken: token,
-        tokenSource: 'native_bridge',
-        tokenUpdatedAt: new Date().toISOString()
+        tokenSource: "native_bridge",
+        tokenUpdatedAt: new Date().toISOString(),
       });
-      console.log('[NotificationService] Explicit token update successful:', token);
+      console.log(
+        "[NotificationService] Explicit token update successful:",
+        token,
+      );
       return true;
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
@@ -134,34 +161,39 @@ class NotificationService {
       const alerts = await this.getAlerts(userId);
       if (alerts.length === 0) return;
 
-      console.log(`[NotificationService] Found ${alerts.length} pending alerts for user ${userId}`);
-      
+      console.log(
+        `[NotificationService] Found ${alerts.length} pending alerts for user ${userId}`,
+      );
+
       if (!this.hasSentStartupNotification) {
         this.hasSentStartupNotification = true;
-        
-        const expiredCount = alerts.filter(a => a.type === 'expired').length;
-        const inactiveCount = alerts.filter(a => a.type === 'inactive').length;
-        const expiringCount = alerts.filter(a => a.type === 'expiring').length;
-        
-        let bodyText = `${alerts.length} device${alerts.length > 1 ? 's' : ''} require${alerts.length === 1 ? 's' : ''} attention.`;
-        
+
+        const expiredCount = alerts.filter((a) => a.type === "expired").length;
+        const inactiveCount = alerts.filter(
+          (a) => a.type === "inactive",
+        ).length;
+        const expiringCount = alerts.filter(
+          (a) => a.type === "expiring",
+        ).length;
+
+        let bodyText = `${alerts.length} device${alerts.length > 1 ? "s" : ""} require${alerts.length === 1 ? "s" : ""} attention.`;
+
         if (expiredCount > 0 || inactiveCount > 0) {
-           bodyText = `${expiredCount + inactiveCount} device(s) inactive/expired. Action needed.`;
+          bodyText = `${expiredCount + inactiveCount} device(s) inactive/expired. Action needed.`;
         } else if (expiringCount > 0) {
-           bodyText = `${expiringCount} device(s) expiring soon.`;
+          bodyText = `${expiringCount} device(s) expiring soon.`;
         }
 
         setTimeout(() => {
           this.notify({
-            title: 'Device Maintenance Required',
+            title: "Device Maintenance Required",
             body: bodyText,
-            icon: 'ic_stat_notification'
+            icon: "ic_stat_notification",
           });
         }, 5000);
       }
-
     } catch (error) {
-      console.error('Error checking device expirations:', error);
+      console.error("Error checking device expirations:", error);
     }
   }
 
@@ -169,16 +201,16 @@ class NotificationService {
     const dismissed = this.getDismissedAlerts();
     if (!dismissed.includes(alertId)) {
       dismissed.push(alertId);
-      localStorage.setItem('dismissed_alerts', JSON.stringify(dismissed));
-      window.dispatchEvent(new CustomEvent('alerts_updated'));
+      localStorage.setItem("dismissed_alerts", JSON.stringify(dismissed));
+      window.dispatchEvent(new CustomEvent("alerts_updated"));
     }
   }
 
   public dismissAllAlerts(alertIds: string[]) {
     const dismissed = this.getDismissedAlerts();
     let updated = false;
-    
-    alertIds.forEach(id => {
+
+    alertIds.forEach((id) => {
       if (!dismissed.includes(id)) {
         dismissed.push(id);
         updated = true;
@@ -186,19 +218,19 @@ class NotificationService {
     });
 
     if (updated) {
-      localStorage.setItem('dismissed_alerts', JSON.stringify(dismissed));
-      window.dispatchEvent(new CustomEvent('alerts_updated'));
+      localStorage.setItem("dismissed_alerts", JSON.stringify(dismissed));
+      window.dispatchEvent(new CustomEvent("alerts_updated"));
     }
   }
 
   public resetAlerts() {
-    localStorage.removeItem('dismissed_alerts');
-    window.dispatchEvent(new CustomEvent('alerts_updated'));
+    localStorage.removeItem("dismissed_alerts");
+    window.dispatchEvent(new CustomEvent("alerts_updated"));
   }
 
   private getDismissedAlerts(): string[] {
     try {
-      const data = localStorage.getItem('dismissed_alerts');
+      const data = localStorage.getItem("dismissed_alerts");
       return data ? JSON.parse(data) : [];
     } catch {
       return [];
@@ -209,8 +241,8 @@ class NotificationService {
     if (!userId) return [];
 
     try {
-      const devicesRef = collection(db, 'devices');
-      const q = query(devicesRef, where('ownerId', '==', userId));
+      const devicesRef = collection(db, "devices");
+      const q = query(devicesRef, where("ownerId", "==", userId));
       const querySnapshot = await getDocs(q);
 
       const now = new Date();
@@ -222,19 +254,19 @@ class NotificationService {
 
       querySnapshot.forEach((doc) => {
         const device = { id: doc.id, ...doc.data() } as any;
-        const alertId = `${doc.id}-${device.subscriptionStatus === 'inactive' ? 'inactive' : 'expired'}`;
-        
+        const alertId = `${doc.id}-${device.subscriptionStatus === "inactive" ? "inactive" : "expired"}`;
+
         if (dismissed.includes(alertId)) return;
-        
-        if (device.subscriptionStatus === 'inactive') {
+
+        if (device.subscriptionStatus === "inactive") {
           alerts.push({
             id: alertId,
-            type: 'inactive',
+            type: "inactive",
             deviceId: doc.id,
             deviceName: device.name,
             deviceDescription: device.description,
             date: new Date(device.lastUpdated?.seconds * 1000 || Date.now()),
-            message: 'Needs active subscription'
+            message: "Needs active subscription",
           });
           return;
         }
@@ -253,29 +285,29 @@ class NotificationService {
         if (expirationDate < now) {
           alerts.push({
             id: alertId,
-            type: 'expired',
+            type: "expired",
             deviceId: doc.id,
             deviceName: device.name,
             deviceDescription: device.description,
             date: expirationDate,
-            message: 'Subscription has expired'
+            message: "Subscription has expired",
           });
         } else if (expirationDate < threeDaysFromNow) {
           alerts.push({
             id: `${doc.id}-expiring`,
-            type: 'expiring',
+            type: "expiring",
             deviceId: doc.id,
             deviceName: device.name,
             deviceDescription: device.description,
             date: expirationDate,
-            message: 'Subscription expiring soon'
+            message: "Subscription expiring soon",
           });
         }
       });
 
       return alerts.sort((a, b) => a.date.getTime() - b.date.getTime());
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'devices');
+      handleFirestoreError(error, OperationType.GET, "devices");
       return [];
     }
   }
