@@ -54,10 +54,7 @@ const Dashboard: React.FC = () => {
     // Automatically scroll to the filter section when a status is selected
     // but only if we are not already looking at the inventory
     if (!loading && filter && scrollAnchorRef.current) {
-      const sat =
-        parseInt(getComputedStyle(document.body).getPropertyValue("--sat")) ||
-        0;
-      const offset = scrollAnchorRef.current.offsetTop - (64 + sat);
+      const offset = scrollAnchorRef.current.offsetTop - 64;
       const currentScroll = window.scrollY;
 
       // Scroll if the inventory isn't in view (either user is at the top or below the section)
@@ -347,7 +344,7 @@ const Dashboard: React.FC = () => {
       <section
         ref={statsRef}
         className={cn(
-          "sticky top-[calc(64px+env(safe-area-inset-top))] z-20 pt-4 pb-0 mt-1 transition-all duration-300",
+          "sticky top-[64px] z-20 pt-4 pb-0 mt-1 transition-all duration-300",
           isSticky
             ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent"
             : "bg-transparent",

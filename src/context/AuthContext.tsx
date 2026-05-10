@@ -178,7 +178,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               } catch (e) {
                 // Ignore web
               }
-              SplashScreen.hide().catch(() => {});
+              SplashScreen.hide()
+                .then(() => {
+                  // Force webview size recalculation on first launch after splash screen hides
+                  setTimeout(
+                    () => window.dispatchEvent(new Event("resize")),
+                    100,
+                  );
+                })
+                .catch(() => {});
             }, 100);
           }
         }
