@@ -63,7 +63,7 @@ const Devices: React.FC = () => {
 
   return (
     <div className="-mt-4">
-      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+      <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
         {/* Solid Background Layer */}
         <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}
@@ -227,7 +227,7 @@ const DeviceItem = ({
           {device.description || device.name}
         </h4>
         {device.description && (
-          <p className="text-[10px] font-black text-slate-500 line-clamp-1 uppercase tracking-tight leading-tight mt-1">
+          <p className="mt-1 line-clamp-1 text-[10px] font-medium uppercase tracking-tight leading-tight text-slate-500">
             {device.name}
           </p>
         )}

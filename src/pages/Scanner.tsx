@@ -239,8 +239,8 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="-mt-4 flex flex-col h-[calc(100vh-130px)]">
-      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden shrink-0">
+    <div className="-mt-4 flex flex-1 flex-col">
+      <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden shrink-0">
         {/* Solid Background Layer */}
         <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}
@@ -326,7 +326,7 @@ const Scanner: React.FC = () => {
         </header>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 mt-2">
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-[340px]">
           <AnimatePresence mode="wait">
             {scanResult ? (

@@ -81,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
     <div className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] overflow-x-clip relative">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-4 relative">
+        <div className="mx-auto flex h-[72px] max-w-lg items-center justify-between px-4 relative">
           <div className="flex items-center">
             {showBack && (
               <button
@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   damping: 20,
                   delay: 0.1,
                 }}
-                className="bg-black text-white w-7 h-7 flex items-center justify-center rounded-[4px] font-black text-[20px] leading-none shadow-sm"
+                className="bg-black text-white w-[30px] h-[30px] flex items-center justify-center rounded-[4px] font-black text-[22px] leading-none shadow-sm"
               >
                 IO
               </motion.div>
@@ -124,7 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
                   animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-lg font-black tracking-tight text-slate-900 pl-0.5"
+                  className="text-xl font-extrabold tracking-tight text-slate-900 pl-0.5"
                 >
                   tConnect
                 </motion.span>
@@ -135,17 +135,17 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
               animate={ENABLE_LOGO_ANIMATION ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="mt-0.5 flex w-full justify-between items-center origin-top"
+              className="mt-1 flex w-full justify-between items-center origin-top px-0.5"
             >
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
                 global
               </span>
-              <span className="text-[7px] font-light text-slate-200">|</span>
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[8px] font-light text-slate-200">|</span>
+              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
                 iot
               </span>
-              <span className="text-[7px] font-light text-slate-200">|</span>
-              <span className="text-[7px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[8px] font-light text-slate-200">|</span>
+              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
                 connectivity
               </span>
             </motion.div>
@@ -180,7 +180,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-4 px-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 py-4 px-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]">
         {children}
       </main>
 

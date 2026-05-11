@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
       const sat =
         parseInt(getComputedStyle(document.body).getPropertyValue("--sat")) ||
         0;
-      const offset = scrollAnchorRef.current.offsetTop - (64 + sat);
+      const offset = scrollAnchorRef.current.offsetTop - (72 + sat);
       const currentScroll = window.scrollY;
 
       // Scroll if the inventory isn't in view (either user is at the top or below the section)
@@ -74,8 +74,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Logic to toggle sticky state based on hero section height (approx 240px)
-      if (window.scrollY > 220) {
+      // More precise logic to toggle sticky state - triggering slightly earlier (180px)
+      // to ensure the background is ready by the time it hits the sticky top position
+      if (window.scrollY > 180) {
         setIsSticky(true);
       } else {
         setIsSticky(false);
@@ -83,14 +84,20 @@ const Dashboard: React.FC = () => {
 
       if (isAutoScrolling.current) return;
 
-      // Hide sticky header when reaching insights section or bottom of page
-      const insightsTop = insightsRef.current?.offsetTop ?? Infinity;
-      const isAtBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 20;
+      // Hide sticky header ONLY if insights mode is enabled
+      const showInsights = profile?.showInsights !== false;
 
-      if (window.scrollY + 140 > insightsTop || isAtBottom) {
-        setIsStickyHidden(true);
+      if (showInsights) {
+        const insightsTop = insightsRef.current?.offsetTop ?? Infinity;
+        const isAtBottom =
+          window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 20;
+
+        if (window.scrollY + 140 > insightsTop || isAtBottom) {
+          setIsStickyHidden(true);
+        } else {
+          setIsStickyHidden(false);
+        }
       } else {
         setIsStickyHidden(false);
       }
@@ -98,7 +105,7 @@ const Dashboard: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [profile?.showInsights]);
 
   const loadDevices = async () => {
     try {
@@ -125,13 +132,13 @@ const Dashboard: React.FC = () => {
     : devices;
 
   return (
-    <div className="pb-0 min-h-screen">
+    <div className="-mt-3 pb-0 min-h-screen">
       {/* Hero Welcome Section - Compressed Sleek Header */}
-      <section className="pt-4 pb-4">
+      <section className="pt-1 pb-1">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-visible rounded-[32px] p-4"
+          className="relative overflow-visible rounded-[32px] py-3 px-4"
         >
           {/* Animated Cluster Network Background */}
           <div className="absolute -right-12 -top-20 text-slate-300/30 pointer-events-none z-0">
@@ -261,7 +268,7 @@ const Dashboard: React.FC = () => {
             </motion.div>
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
                 <div className="relative flex h-1.5 w-1.5">
@@ -307,7 +314,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-1.5 flex items-center justify-around gap-5 border-t border-slate-50 pt-3.5">
+          <div className="mt-1 flex items-center justify-around gap-5 border-t border-slate-50 pt-2.5">
             <div className="flex flex-col items-center">
               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">
                 Active Pool
@@ -347,9 +354,9 @@ const Dashboard: React.FC = () => {
       <section
         ref={statsRef}
         className={cn(
-          "sticky top-[calc(64px+env(safe-area-inset-top))] z-20 pt-4 pb-0 mt-1 transition-all duration-300",
+          "sticky top-[calc(72px+env(safe-area-inset-top))] z-20 pt-2 pb-0 mt-0 transition-[transform,opacity] duration-300",
           isSticky
-            ? "bg-gradient-to-b from-bg-main via-bg-main/95 via-70% to-transparent"
+            ? "bg-gradient-to-b from-bg-main via-bg-main via-[85%] to-transparent"
             : "bg-transparent",
           isStickyHidden && isSticky
             ? "-translate-y-full opacity-0 pointer-events-none"
@@ -395,7 +402,7 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between h-8 mt-2">
+        <div className="flex items-center justify-between h-8 mt-1">
           <div className="flex items-center gap-2">
             <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
               Quick Inventory
