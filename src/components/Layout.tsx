@@ -95,9 +95,9 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
 
           <div
             onClick={() => navigate("/")}
-            className="absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-transform active:scale-95 group w-max"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-transform active:scale-95 group w-max"
           >
-            <div className="flex items-center gap-0 whitespace-nowrap">
+            <div className="flex items-center gap-0 whitespace-nowrap pt-1">
               <motion.div
                 initial={
                   ENABLE_LOGO_ANIMATION
@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   damping: 20,
                   delay: 0.1,
                 }}
-                className="bg-black text-white w-[30px] h-[30px] flex items-center justify-center rounded-[4px] font-black text-[22px] leading-none shadow-sm"
+                className="bg-black text-white w-8 h-8 flex items-center justify-center rounded-[4px] font-black text-[22px] leading-none shadow-sm"
               >
                 IO
               </motion.div>
@@ -124,7 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
                   animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-xl font-extrabold tracking-tight text-slate-900 pl-0.5"
+                  className="text-xl font-black tracking-tight text-slate-900 pl-0.5"
                 >
                   tConnect
                 </motion.span>
@@ -135,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
               animate={ENABLE_LOGO_ANIMATION ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="mt-1 flex w-full justify-between items-center origin-top px-0.5"
+              className="mt-0.5 flex justify-center items-center gap-2 origin-top"
             >
               <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
                 global
@@ -180,7 +180,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 py-4 px-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-4 px-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]">
         {children}
       </main>
 
@@ -196,7 +196,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center gap-1 p-2 transition-colors relative group",
-                  isActive ? "text-sky-600" : "text-slate-400",
+                  isActive ? "text-slate-800" : "text-slate-400",
                 )}
               >
                 <motion.div
@@ -226,7 +226,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
-                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-sky-500"
+                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-slate-800"
                   />
                 )}
               </button>

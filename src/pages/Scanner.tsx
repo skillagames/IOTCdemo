@@ -239,14 +239,12 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="-mt-4 flex flex-1 flex-col">
+    <div className="-mt-4 flex flex-col h-[calc(100dvh-140px)]">
       <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden shrink-0">
         {/* Solid Background Layer */}
-        <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
-        {/* Gradient Fade Layer */}
-        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 bottom-0 bg-bg-main/95 backdrop-blur-md" />
 
-        <header className="relative z-20 space-y-4 px-1 pb-6">
+        <header className="relative z-20 px-1 pb-4">
           <div className="text-center">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
               Add Device
@@ -257,7 +255,7 @@ const Scanner: React.FC = () => {
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex gap-1 rounded-[20px] bg-slate-50/80 p-1">
+          <div className="flex gap-2 justify-center max-w-[280px] mx-auto mt-4">
             <button
               onClick={() => {
                 setActiveTab("scan");
@@ -274,7 +272,7 @@ const Scanner: React.FC = () => {
               {activeTab === "scan" && (
                 <motion.div
                   layoutId="scannerTabIndicator"
-                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50/50 shadow-sm"
+                  className="absolute inset-0 rounded-[16px] border border-sky-200/20 bg-sky-100/20 shadow-sm"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
@@ -283,7 +281,7 @@ const Scanner: React.FC = () => {
                   className={cn(
                     "h-3.5 w-3.5 transition-colors",
                     activeTab === "scan"
-                      ? "text-sky-400"
+                      ? "text-sky-600"
                       : "text-slate-300 group-hover:text-slate-400",
                   )}
                 />{" "}
@@ -306,7 +304,7 @@ const Scanner: React.FC = () => {
               {activeTab === "manual" && (
                 <motion.div
                   layoutId="scannerTabIndicator"
-                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50/50 shadow-sm"
+                  className="absolute inset-0 rounded-[16px] border border-sky-200/20 bg-sky-100/20 shadow-sm"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
@@ -315,7 +313,7 @@ const Scanner: React.FC = () => {
                   className={cn(
                     "h-3.5 w-3.5 transition-colors",
                     activeTab === "manual"
-                      ? "text-sky-400"
+                      ? "text-sky-600"
                       : "text-slate-300 group-hover:text-slate-400",
                   )}
                 />{" "}

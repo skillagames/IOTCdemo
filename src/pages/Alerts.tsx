@@ -60,11 +60,11 @@ const Alerts: React.FC = () => {
     <div className="-mt-4 min-h-screen pb-12">
       <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
         {/* Solid Background Layer */}
-        <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
+        <div className="absolute inset-x-0 top-0 bottom-4 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}
-        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
 
-        <header className="relative z-40 px-1 pb-6">
+        <header className="relative z-40 px-1 pb-4">
           <div className="text-center">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
               Device Alerts
@@ -254,7 +254,7 @@ const Alerts: React.FC = () => {
 
         {/* Quick Actions - Constrained sticky behavior correctly stopping before the header */}
         {alerts.length > 0 && (
-          <div className="sticky top-[calc(168px+env(safe-area-inset-top))] z-20 w-full mt-12 mb-4 px-1">
+          <div className="sticky top-[calc(160px+env(safe-area-inset-top))] z-20 w-full mt-12 mb-4 px-1">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

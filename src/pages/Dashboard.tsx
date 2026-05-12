@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Network,
@@ -11,6 +11,12 @@ import {
   Zap,
   Activity,
   ShieldCheck,
+  Cpu,
+  LayoutGrid,
+  Workflow,
+  LogOut,
+  User,
+  Settings,
 } from "lucide-react";
 import { deviceService, Device } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
@@ -32,6 +38,7 @@ const Dashboard: React.FC = () => {
   const insightsRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const secondLastItemRef = useRef<HTMLDivElement>(null);
   const isAutoScrolling = useRef(false);
 
   const handleFilterChange = (newFilter: typeof filter) => {
@@ -60,8 +67,8 @@ const Dashboard: React.FC = () => {
       const offset = scrollAnchorRef.current.offsetTop - (72 + sat);
       const currentScroll = window.scrollY;
 
-      // Scroll if the inventory isn't in view (either user is at the top or below the section)
-      if (currentScroll < offset - 60 || currentScroll > offset + 60) {
+      // Scroll if the inventory isn't in view
+      if (Math.abs(currentScroll - offset) > 2) {
         window.scrollTo({ top: offset, behavior: "smooth" });
       }
 
@@ -72,11 +79,14 @@ const Dashboard: React.FC = () => {
     }
   }, [filter, loading]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleScroll = () => {
-      // More precise logic to toggle sticky state - triggering slightly earlier (180px)
-      // to ensure the background is ready by the time it hits the sticky top position
-      if (window.scrollY > 180) {
+      // Logic to toggle sticky state based on hero section height
+      const sat = parseInt(getComputedStyle(document.body).getPropertyValue("--sat")) || 0;
+      const stickyThreshold = (scrollAnchorRef.current?.offsetTop || 0) - (72 + sat);
+      
+      // Trigger sticky state slightly before it actually sticks to account for scroll speed/framerates
+      if (window.scrollY >= stickyThreshold - 8) {
         setIsSticky(true);
       } else {
         setIsSticky(false);
@@ -93,17 +103,32 @@ const Dashboard: React.FC = () => {
           window.innerHeight + window.scrollY >=
           document.documentElement.scrollHeight - 20;
 
-        if (window.scrollY + 140 > insightsTop || isAtBottom) {
-          setIsStickyHidden(true);
+        let shouldHide = false;
+        const secondLastItem = secondLastItemRef.current;
+        
+        if (secondLastItem) {
+          const rect = secondLastItem.getBoundingClientRect();
+          const stickyThreshold = 140; // Position below viewport top to trigger hide
+          
+          // If the item is above the threshold (scrolling down), hide
+          // if it's below (scrolling up), show
+          if (rect.top < -20 || isAtBottom) {
+            shouldHide = true;
+          }
         } else {
-          setIsStickyHidden(false);
+          // Fallback if no second-last item
+          if (window.scrollY + 140 > insightsTop || isAtBottom) {
+            shouldHide = true;
+          }
         }
+
+        setIsStickyHidden(shouldHide);
       } else {
         setIsStickyHidden(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [profile?.showInsights]);
 
@@ -132,13 +157,13 @@ const Dashboard: React.FC = () => {
     : devices;
 
   return (
-    <div className="-mt-3 pb-0 min-h-screen">
+    <div className="pb-0 min-h-screen">
       {/* Hero Welcome Section - Compressed Sleek Header */}
-      <section className="pt-1 pb-1">
+      <section className="pt-3.5 pb-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-visible rounded-[32px] py-3 px-4"
+          className="relative overflow-visible rounded-[32px] p-4"
         >
           {/* Animated Cluster Network Background */}
           <div className="absolute -right-12 -top-20 text-slate-300/30 pointer-events-none z-0">
@@ -268,7 +293,7 @@ const Dashboard: React.FC = () => {
             </motion.div>
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
                 <div className="relative flex h-1.5 w-1.5">
@@ -288,14 +313,14 @@ const Dashboard: React.FC = () => {
                   devices.filter((d) => d.subscriptionStatus === "active")
                     .length
                 }{" "}
-                active nodes running.
+                active devices running.
               </p>
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={() => navigate("/scan")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-200/20 bg-sky-100/20 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/80 shadow-sm"
               >
                 <PlusCircle className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
@@ -304,7 +329,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => navigate("/devices")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50/50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/50 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-200/20 bg-sky-100/20 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/80 shadow-sm"
               >
                 <Network className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
@@ -314,7 +339,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-1 flex items-center justify-around gap-5 border-t border-slate-50 pt-2.5">
+          <div className="mt-1.5 flex items-center justify-around gap-5 border-t border-slate-50 pt-3.5">
             <div className="flex flex-col items-center">
               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">
                 Active Pool
@@ -348,21 +373,22 @@ const Dashboard: React.FC = () => {
         </motion.div>
       </section>
 
-      <div ref={scrollAnchorRef} />
+      <div ref={scrollAnchorRef} className="h-0 w-full" />
 
       {/* Stats Quick View - Constant Sticky Header */}
       <section
         ref={statsRef}
         className={cn(
-          "sticky top-[calc(72px+env(safe-area-inset-top))] z-20 pt-2 pb-0 mt-0 transition-[transform,opacity] duration-300",
-          isSticky
-            ? "bg-gradient-to-b from-bg-main via-bg-main via-[85%] to-transparent"
-            : "bg-transparent",
+          "sticky top-[calc(72px+env(safe-area-inset-top))] z-20 pt-4 pb-0 bg-bg-main transition-all duration-300 before:content-[''] before:absolute before:inset-x-0 before:-top-8 before:h-8 before:bg-bg-main",
           isStickyHidden && isSticky
             ? "-translate-y-full opacity-0 pointer-events-none"
             : "translate-y-0 opacity-100",
         )}
       >
+        {/* Bottom fade for sticky mode only - prevents harsh cut against the list */}
+        {isSticky && (
+          <div className="absolute inset-x-0 -bottom-2 h-3 bg-gradient-to-b from-bg-main via-bg-main/70 to-transparent pointer-events-none" />
+        )}
         <div className="grid grid-cols-3 gap-2">
           <StatCard
             label="ACTIVE"
@@ -402,31 +428,35 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between h-8 mt-1">
+        <div className="flex items-center justify-between h-8 mt-2 pb-1 transition-all duration-300">
           <div className="flex items-center gap-2">
             <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
               Quick Inventory
             </h2>
-            <div className="flex items-center h-6">
-              {filter && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.9, x: -5 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  onClick={() => handleFilterChange(null)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
-                    filter === "active" &&
-                      "bg-emerald-50 text-emerald-600 border-emerald-100",
-                    filter === "expired" &&
-                      "bg-red-50 text-red-600 border-red-100",
-                    filter === "inactive" &&
-                      "bg-slate-50 text-slate-500 border-slate-200",
-                  )}
-                >
-                  <span>{filter}</span>
-                  <X className="h-2 w-2 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-                </motion.button>
-              )}
+            <div className="flex items-center h-6 min-w-[70px]">
+              <AnimatePresence mode="wait">
+                {filter && (
+                  <motion.button
+                    key={filter}
+                    initial={{ opacity: 0, scale: 0.9, x: -5 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, x: -5 }}
+                    onClick={() => handleFilterChange(null)}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
+                      filter === "active" &&
+                        "bg-emerald-50 text-emerald-600 border-emerald-100",
+                      filter === "expired" &&
+                        "bg-red-50 text-red-600 border-red-100",
+                      filter === "inactive" &&
+                        "bg-slate-50 text-slate-500 border-slate-200",
+                    )}
+                  >
+                    <span>{filter}</span>
+                    <X className="h-2 w-2 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tight">
@@ -440,19 +470,18 @@ const Dashboard: React.FC = () => {
         <div
           ref={listRef}
           className={cn(
-            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 relative pt-1 overflow-hidden",
+            "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 relative transition-all duration-300 ease-in-out",
             filter
-              ? isSticky
-                ? "h-[405px] overflow-y-auto pb-12"
-                : "h-[405px]"
-              : "min-h-[405px] h-auto overflow-visible",
+              ? "h-auto overflow-visible pb-10 pt-1"
+              : "min-h-[405px] h-auto overflow-visible pb-10 pt-1",
           )}
         >
           <div className="grid gap-3 px-1 pb-1">
             <AnimatePresence initial={false}>
               {filteredDevices.length > 0 ? (
-                filteredDevices.map((device) => (
+                filteredDevices.map((device, index) => (
                   <motion.div
+                    ref={index === Math.max(0, filteredDevices.length - 2) ? secondLastItemRef : null}
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -508,9 +537,6 @@ const Dashboard: React.FC = () => {
             </AnimatePresence>
           </div>
         </div>
-        {filter && (
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-bg-main via-bg-main/80 to-transparent z-10 pointer-events-none" />
-        )}
       </section>
 
       {/* Cluster Insights Section */}
@@ -526,158 +552,180 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid gap-4">
-            {/* Health Overview Container */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* Operational Status Card */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-bg-main shadow-sm p-6 flex flex-col justify-between group">
-                <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-20 group-hover:opacity-10 transition-opacity">
-                  <Activity
-                    className="w-24 h-24 text-slate-200"
-                    strokeWidth={1}
+            {/* Combined Health & Logistics Overview */}
+            <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-bg-main shadow-sm p-5 flex flex-col group">
+              {/* Background accents */}
+              <div className="absolute -top-8 -right-6 h-32 w-32 rounded-full bg-blue-100/40 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
+              <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-emerald-50/50 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
+              <div className="absolute bottom-0 right-0 p-5 pointer-events-none opacity-20 group-hover:opacity-10 transition-opacity">
+                <motion.svg
+                  width="120"
+                  height="120"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.0"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-slate-400 w-32 h-32"
+                >
+                  <motion.path
+                    d="M2 12h4l3 9L15 3l3 9h4"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{
+                      pathLength: [0, 1, 1],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear",
+                      times: [0, 0.7, 1],
+                    }}
                   />
-                </div>
+                  {/* Subtle static trace for contrast */}
+                  <path
+                    d="M2 12h4l3 9L15 3l3 9h4"
+                    className="opacity-10"
+                    strokeWidth="0.5"
+                  />
+                </motion.svg>
+              </div>
 
-                <div className="flex items-start justify-between relative z-10">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </div>
-                      <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
-                        Operational Status
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed whitespace-nowrap">
-                      Network optimized.{" "}
+              {/* Combined Header using requested Live Logistics style */}
+              <div className="flex items-center justify-between mb-5 relative z-10">
+                <div className="flex items-center gap-2">
+                  <Workflow className="h-4 w-4 text-blue-500" />
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    Operational Status & Logistics
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </div>
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                    Live
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                {/* Operational Status (Left) */}
+                <div className="flex flex-col h-full">
+                  <div className="space-y-1 mb-4">
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                      Network optimized at 92.4% efficiency.{" "}
                       {
                         devices.filter((d) => d.subscriptionStatus === "active")
                           .length
                       }{" "}
-                      active devices running efficiently.
+                      active devices running within parameters.
                     </p>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-6 mt-6 relative z-10">
-                  <div className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center">
-                    <svg className="h-full w-full -rotate-90 transform dropshadow-xl">
-                      <defs>
-                        <linearGradient
-                          id="healthGrad"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="100%"
-                        >
-                          <stop offset="0%" stopColor="#3b82f6" />
-                          <stop offset="100%" stopColor="#8b5cf6" />
-                        </linearGradient>
-                      </defs>
-                      <circle
-                        cx="36"
-                        cy="36"
-                        r="32"
-                        stroke="currentColor"
-                        strokeWidth="6"
-                        fill="transparent"
-                        className="text-slate-300"
-                      />
-                      <circle
-                        cx="36"
-                        cy="36"
-                        r="32"
-                        stroke="url(#healthGrad)"
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                        fill="transparent"
-                        strokeDasharray="201.06"
-                        strokeDashoffset={
-                          201.06 -
-                          201.06 *
+                  <div className="flex items-center gap-5 mt-auto">
+                    <div className="relative flex h-[60px] w-[60px] shrink-0 items-center justify-center">
+                      <svg className="h-full w-full -rotate-90 transform drop-shadow-lg">
+                        <defs>
+                          <linearGradient
+                            id="healthGrad"
+                            x1="0%"
+                            y1="0%"
+                            x2="100%"
+                            y2="100%"
+                          >
+                            <stop offset="0%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#8b5cf6" />
+                          </linearGradient>
+                        </defs>
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r="26"
+                          stroke="currentColor"
+                          strokeWidth="6"
+                          fill="transparent"
+                          className="text-slate-100"
+                        />
+                        <motion.circle
+                          initial={{ strokeDashoffset: 163.36 }}
+                          animate={{
+                            strokeDashoffset:
+                              163.36 -
+                              163.36 *
+                                (devices.filter(
+                                  (d) => d.subscriptionStatus === "active",
+                                ).length /
+                                  (devices.length || 1)),
+                          }}
+                          transition={{ duration: 1.5, ease: "easeOut" }}
+                          cx="30"
+                          cy="30"
+                          r="26"
+                          stroke="url(#healthGrad)"
+                          strokeWidth="6"
+                          strokeLinecap="round"
+                          fill="transparent"
+                          strokeDasharray="163.36"
+                        />
+                      </svg>
+                      <div className="absolute flex flex-col items-center leading-none">
+                        <span className="text-[11px] font-black text-slate-900">
+                          {Math.round(
                             (devices.filter(
                               (d) => d.subscriptionStatus === "active",
                             ).length /
-                              (devices.length || 1))
-                        }
-                        className="transition-all duration-1000 ease-out drop-shadow-md"
-                      />
-                    </svg>
-                    <div className="absolute flex flex-col items-center leading-none mt-0.5">
-                      <span className="text-sm font-black text-slate-900">
-                        {Math.round(
-                          (devices.filter(
-                            (d) => d.subscriptionStatus === "active",
-                          ).length /
-                            (devices.length || 1)) *
-                            100,
-                        )}
-                        <span className="text-[10px]">%</span>
-                      </span>
+                              (devices.length || 1)) *
+                              100,
+                          )}
+                          <span className="text-[8px]">%</span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col gap-3 w-full">
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                        Throughput
-                      </span>
-                      <span className="text-[11px] font-black text-slate-900 font-mono">
-                        2.4
-                        <span className="text-[8px] text-slate-400 ml-0.5 font-sans">
-                          GB/S
+                    <div className="flex flex-col gap-2 w-full">
+                      <div className="flex items-center justify-between rounded-xl bg-slate-50/80 border border-slate-200 px-3 py-2">
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">
+                          Throughput
                         </span>
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                        Latency
-                      </span>
-                      <span className="text-[11px] font-black text-slate-900 font-mono">
-                        12
-                        <span className="text-[8px] text-slate-400 ml-0.5 font-sans">
-                          MS
+                        <span className="text-[10px] font-black text-slate-900 font-mono">
+                          2.4 <span className="text-[7px] font-sans">GB/S</span>
                         </span>
-                      </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-slate-50/80 border border-slate-200 px-3 py-2">
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">
+                          Latency
+                        </span>
+                        <span className="text-[10px] font-black text-slate-900 font-mono">
+                          12 <span className="text-[7px] font-sans">MS</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Recent Activity Timeline */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-bg-main shadow-sm p-6 flex flex-col">
-                <div className="absolute -top-12 -right-6 h-32 w-32 rounded-full bg-blue-50/50" />
-                <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald-50/50" />
-
-                <div className="flex items-center justify-between mb-5 relative z-10">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-3.5 w-3.5 text-blue-500" />
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-                      Live Logistics
-                    </h4>
-                  </div>
-                  <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
-                </div>
-
-                <div className="relative flex-1 space-y-4 before:absolute before:inset-y-2 before:left-[15px] before:w-px before:bg-slate-200">
+                {/* Logistics Timeline (Right) */}
+                <div className="relative space-y-3.5 before:absolute before:inset-y-2 before:left-[15.5px] before:w-px before:bg-slate-100">
                   <LogItem
                     icon={Zap}
                     title="Telemetry Pulse"
-                    desc="Route X1 transmitted metrics"
+                    desc={`${devices[0]?.name || "Gateway"} transmitted metrics`}
                     time="2m ago"
                     color="blue"
                   />
                   <LogItem
                     icon={ShieldCheck}
                     title="Service Renewal"
-                    desc="Field Monitor M1 renewed"
+                    desc={`${devices[1]?.name || "Monitor"} renewed`}
                     time="1h ago"
                     color="emerald"
                   />
                   <LogItem
                     icon={AlertCircle}
                     title="Low Signal"
-                    desc="Enterprise Hub G5 latency"
+                    desc={`${devices[2]?.name || "Hub"} latency warning`}
                     time="3h ago"
                     color="red"
                   />
@@ -718,7 +766,7 @@ const LogItem = ({
   time: string;
   color: "blue" | "emerald" | "red";
 }) => (
-  <div className="group relative flex gap-4">
+  <div className="group relative flex items-center gap-4">
     <div
       className={cn(
         "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-white transition-colors group-hover:border-slate-200/60 shadow-sm",
@@ -729,15 +777,15 @@ const LogItem = ({
     >
       <Icon className="h-4 w-4" />
     </div>
-    <div className="flex-1 space-y-0.5 pt-0.5">
-      <div className="flex items-center justify-between">
-        <h5 className="text-xs font-bold text-slate-900">{title}</h5>
-        <span className="text-[9px] font-bold text-slate-400 font-mono bg-white/50 px-1.5 py-0.5 rounded shadow-sm">
-          {time}
-        </span>
-      </div>
-      <p className="text-[11px] text-slate-500 leading-tight">{desc}</p>
+    <div className="flex-1 min-w-0">
+      <h5 className="text-xs font-bold text-slate-900 leading-tight truncate">
+        {title}
+      </h5>
+      <p className="text-[10px] text-slate-500 leading-tight truncate">{desc}</p>
     </div>
+    <span className="shrink-0 text-[9px] font-bold text-slate-400 font-mono bg-white/50 px-1.5 py-0.5 rounded shadow-sm">
+      {time}
+    </span>
   </div>
 );
 
