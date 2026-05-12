@@ -472,8 +472,8 @@ const Dashboard: React.FC = () => {
           className={cn(
             "pr-1 -mr-1 scrollbar-thin scrollbar-thumb-slate-200 relative transition-all duration-300 ease-in-out",
             filter
-              ? "h-auto overflow-visible pb-10 pt-1"
-              : "min-h-[405px] h-auto overflow-visible pb-10 pt-1",
+              ? "h-auto overflow-visible pb-4 pt-1"
+              : "min-h-[405px] h-auto overflow-visible pb-4 pt-1",
           )}
         >
           <div className="grid gap-3 px-1 pb-1">
