@@ -9,6 +9,7 @@ import {
   Camera,
   ArrowRight,
   X,
+  QrCode,
 } from "lucide-react";
 import { DeviceIcon } from "../components/DeviceIcon";
 import { deviceService } from "../services/deviceService";
@@ -33,6 +34,8 @@ const Scanner: React.FC = () => {
   const navigate = useNavigate();
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isTransitioningRef = useRef(false);
+  const stopRequestedRef = useRef(false);
+  const isMountedRef = useRef(true);
   const scannerId = "reader";
 
   const checkPermissions = async () => {
@@ -67,7 +70,7 @@ const Scanner: React.FC = () => {
   };
 
   const startScanner = async () => {
-    if (isTransitioningRef.current) return;
+    if (isTransitioningRef.current || !isMountedRef.current) return;
 
     // Check if the reader element exists in the DOM
     const readerElement = document.getElementById(scannerId);
@@ -75,6 +78,9 @@ const Scanner: React.FC = () => {
       console.warn("Scanner element not found in DOM yet.");
       return;
     }
+
+    // Reset stop request if starting fresh
+    stopRequestedRef.current = false;
 
     // Proactively check/request permissions
     const currentState = await checkPermissions();
@@ -103,6 +109,11 @@ const Scanner: React.FC = () => {
       if (html5QrCodeRef.current.isScanning) {
         setCameraActive(true);
         isTransitioningRef.current = false;
+        
+        // Check if we should have been stopped
+        if (stopRequestedRef.current || !isMountedRef.current) {
+          await stopScanner();
+        }
         return;
       }
 
@@ -120,6 +131,11 @@ const Scanner: React.FC = () => {
         },
         () => {},
       );
+
+      // Successfully started. Check if a stop was requested during the start process
+      if (stopRequestedRef.current || !isMountedRef.current) {
+        await stopScanner();
+      }
     } catch (err: any) {
       console.error("Camera access failed", err);
       // Only set error if it's a real failure, not just a transition conflict
@@ -127,9 +143,10 @@ const Scanner: React.FC = () => {
       const isInterruptedError =
         errMsg.includes("already under transition") ||
         errMsg.includes("media was removed from the document") ||
-        errMsg.includes("play() request was interrupted");
+        errMsg.includes("play() request was interrupted") ||
+        errMsg.includes("NotAllowedError");
 
-      if (!isInterruptedError) {
+      if (!isInterruptedError && isMountedRef.current) {
         setError("Camera access blocked or not found. Try manual entry.");
       }
       setCameraActive(false);
@@ -139,13 +156,18 @@ const Scanner: React.FC = () => {
   };
 
   const stopScanner = async () => {
-    if (isTransitioningRef.current) return;
+    // If currently starting, flag it to stop immediately after it finishes
+    if (isTransitioningRef.current) {
+      stopRequestedRef.current = true;
+      return;
+    }
 
     if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
       try {
         isTransitioningRef.current = true;
         await html5QrCodeRef.current.stop();
         setCameraActive(false);
+        stopRequestedRef.current = false;
       } catch (err) {
         console.warn("Failed to stop scanner", err);
       } finally {
@@ -155,14 +177,17 @@ const Scanner: React.FC = () => {
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     let timeoutId: any;
 
     const syncScanner = async () => {
       if (activeTab === "scan" && !scanResult && !error) {
         // Short delay to ensure DOM is ready and previous state finished
         timeoutId = setTimeout(() => {
-          startScanner();
-        }, 100);
+          if (isMountedRef.current) {
+            startScanner();
+          }
+        }, 150);
       } else if (activeTab === "manual" || scanResult) {
         await stopScanner();
       }
@@ -171,6 +196,7 @@ const Scanner: React.FC = () => {
     syncScanner();
 
     return () => {
+      isMountedRef.current = false;
       if (timeoutId) clearTimeout(timeoutId);
       stopScanner();
     };
@@ -178,17 +204,13 @@ const Scanner: React.FC = () => {
 
   const handleDetected = async (code: string) => {
     try {
+      // PROACTIVELY stop the scanner before we process data 
+      // and before setScanResult(code) triggers a re-render 
+      // that removes the scanner element from the DOM.
+      await stopScanner();
+
       const hardwareData = await deviceService.verifyHardware(code);
       if (!hardwareData) {
-        // Stop camera if it's currently scanning
-        if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
-          try {
-            await html5QrCodeRef.current.stop();
-            setCameraActive(false);
-          } catch (err) {
-            console.error("Failed to stop scanner on error", err);
-          }
-        }
         setError("Hardware Check Failed: Device not recognized");
         setScanResult(null);
         return;
@@ -204,7 +226,6 @@ const Scanner: React.FC = () => {
         imei: hardwareData.imei || "N/A",
         iccid: hardwareData.iccid || "N/A",
       });
-      stopScanner();
     } catch (err) {
       console.error("Verification error", err);
       setError("System check failed. Please try again.");
@@ -239,13 +260,16 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="-mt-4 flex flex-col h-[calc(100dvh-140px)]">
-      <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden shrink-0">
+    <div className="-mt-4 flex flex-col h-[calc(100dvh-150px-env(safe-area-inset-top)-env(safe-area-inset-bottom))]">
+      <div className="z-30 pt-6 pb-0 -mx-4 px-4 shrink-0 relative">
         {/* Solid Background Layer */}
-        <div className="absolute inset-x-0 top-0 bottom-0 bg-bg-main/95 backdrop-blur-md" />
+        <div className="absolute inset-0 bg-bg-main" />
 
-        <header className="relative z-20 px-1 pb-4">
-          <div className="text-center">
+        {/* Background Decor Icon - Positioned absolute to the container to avoid clipping */}
+        <QrCode className="absolute -top-4 -right-4 h-32 w-32 text-slate-900/[0.03] -rotate-12 pointer-events-none z-10" />
+
+        <header className="relative z-20 px-1 pb-6">
+          <div className="text-center relative z-10">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
               Add Device
             </h1>
@@ -255,7 +279,7 @@ const Scanner: React.FC = () => {
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex gap-2 justify-center max-w-[280px] mx-auto mt-4">
+          <div className="flex gap-2 justify-center max-w-[320px] mx-auto mt-4">
             <button
               onClick={() => {
                 setActiveTab("scan");
@@ -263,20 +287,20 @@ const Scanner: React.FC = () => {
                 setError(null);
               }}
               className={cn(
-                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
                 activeTab === "scan"
                   ? "text-sky-900"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50",
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
               )}
             >
               {activeTab === "scan" && (
                 <motion.div
                   layoutId="scannerTabIndicator"
-                  className="absolute inset-0 rounded-[16px] border border-sky-200/20 bg-sky-100/20 shadow-sm"
+                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50 shadow-sm"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
-              <span className="relative z-10 flex items-center justify-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
                 <Camera
                   className={cn(
                     "h-3.5 w-3.5 transition-colors",
@@ -295,20 +319,20 @@ const Scanner: React.FC = () => {
                 setError(null);
               }}
               className={cn(
-                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
                 activeTab === "manual"
                   ? "text-sky-900"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50",
+                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
               )}
             >
               {activeTab === "manual" && (
                 <motion.div
                   layoutId="scannerTabIndicator"
-                  className="absolute inset-0 rounded-[16px] border border-sky-200/20 bg-sky-100/20 shadow-sm"
+                  className="absolute inset-0 rounded-[16px] border border-sky-100 bg-sky-50 shadow-sm"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
-              <span className="relative z-10 flex items-center justify-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
                 <Keyboard
                   className={cn(
                     "h-3.5 w-3.5 transition-colors",
@@ -324,8 +348,8 @@ const Scanner: React.FC = () => {
         </header>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-[340px]">
+      <div className="flex-1 flex flex-col items-center justify-center -mt-8">
+        <div className="w-full max-w-[340px] px-6">
           <AnimatePresence mode="wait">
             {scanResult ? (
               <motion.div
@@ -333,26 +357,26 @@ const Scanner: React.FC = () => {
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="w-full relative aspect-[1/1.1]"
+                className="w-full relative min-h-[420px]"
               >
-                <div className="h-full w-full rounded-[40px] border-2 border-slate-900 bg-white p-6 flex flex-col shadow-2xl shadow-slate-900/15 overflow-hidden">
+                <div className="h-full w-full rounded-[40px] border-2 border-slate-100 bg-white p-5 flex flex-col shadow-2xl shadow-slate-200/50">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-emerald-50 text-emerald-600 shadow-sm">
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] bg-slate-100 text-slate-400 shadow-sm">
                         <DeviceIcon
-                          className="h-6 w-6"
+                          className="h-5 w-5"
                           name={deviceInfo?.name}
                           description={deviceInfo?.description}
                         />
                       </div>
                       <div className="space-y-0.5">
-                        <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">
+                        <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none">
                           Device Identified
                         </h4>
-                        <p className="text-sm font-black tracking-tight text-slate-900 font-mono leading-none pt-1">
+                        <p className="text-[12px] font-black tracking-tight text-slate-900 font-mono leading-none pt-1">
                           SN: {deviceInfo?.serialNumber}
                         </p>
-                        <div className="h-1 w-8 bg-emerald-400 rounded-full mt-2" />
+                        <div className="h-1 w-6 bg-slate-300 rounded-full mt-1.5" />
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -360,14 +384,14 @@ const Scanner: React.FC = () => {
                         onClick={() => setScanResult(null)}
                         className="rounded-full bg-slate-50 p-1.5 text-slate-400 hover:bg-slate-100 transition-colors"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-center space-y-4 overflow-y-auto py-2">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">
+                  <div className="py-4 space-y-3.5">
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
                         Friendly Name
                       </label>
                       <input
@@ -376,12 +400,12 @@ const Scanner: React.FC = () => {
                         onChange={(e) =>
                           setDeviceInfo({ ...deviceInfo, name: e.target.value })
                         }
-                        className="w-full rounded-[16px] bg-slate-50 border-2 border-slate-50 p-3 text-xs font-bold text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                        className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-2 px-3.5 text-xs font-bold text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                       />
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
                         Description (Optional)
                       </label>
                       <input
@@ -394,13 +418,13 @@ const Scanner: React.FC = () => {
                             description: e.target.value,
                           })
                         }
-                        className="w-full rounded-[16px] bg-slate-50 border-2 border-slate-50 p-3 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                        className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-2 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
                           IMEI
                         </label>
                         <input
@@ -415,15 +439,15 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[16px] border-2 p-2.5 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-2 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
                           )}
                         />
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
                           ICCID
                         </label>
                         <input
@@ -438,7 +462,7 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[16px] border-2 p-2.5 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-2 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
@@ -452,10 +476,10 @@ const Scanner: React.FC = () => {
                     <button
                       onClick={handleRegister}
                       disabled={registering}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-slate-950/20"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-emerald-50 border-2 border-emerald-100 text-[10px] font-black uppercase tracking-[0.15em] text-emerald-600 transition-all active:scale-95 disabled:opacity-50"
                     >
                       {registering ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
                       ) : (
                         <>
                           Commit Registration <ArrowRight className="h-4 w-4" />

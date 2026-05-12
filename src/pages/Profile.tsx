@@ -211,7 +211,7 @@ const Profile: React.FC = () => {
   return (
     <div className="space-y-3 pb-1">
       {/* Compressed Header */}
-      <header className="relative text-center pt-2">
+      <header className="relative z-10 text-center pt-4">
         <button
           onClick={handleOpenEdit}
           className="absolute right-2 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-primary transition-colors active:scale-95"

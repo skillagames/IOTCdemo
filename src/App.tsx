@@ -54,6 +54,17 @@ const PageTransition = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Scroll to top on route change component
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const AppContent = () => {
   const { loading } = useAuth();
 
@@ -61,6 +72,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-dvh bg-bg-main font-sans text-slate-800">
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<Login />} />
 

@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   X,
   Activity,
+  Server,
 } from "lucide-react";
 import { deviceService, Device } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
@@ -63,14 +64,17 @@ const Devices: React.FC = () => {
 
   return (
     <div className="-mt-4">
-      <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4 overflow-hidden">
+      <div className="sticky top-[calc(72px+env(safe-area-inset-top))] z-30 pt-6 pb-0 -mx-4 px-4">
         {/* Solid Background Layer */}
         <div className="absolute inset-x-0 top-0 bottom-6 bg-bg-main/95 backdrop-blur-md" />
         {/* Gradient Fade Layer */}
         <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-bg-main/95 to-transparent pointer-events-none" />
 
+        {/* Background Decor Icon - Positioned absolute to the container to avoid clipping */}
+        <Server className="absolute -top-4 -right-4 h-32 w-32 text-slate-900/[0.03] -rotate-12 pointer-events-none z-10" />
+
         <header className="relative z-20 px-1 pb-6">
-          <div className="text-center">
+          <div className="text-center relative z-10">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
               Device Inventory
             </h1>
@@ -96,7 +100,7 @@ const Devices: React.FC = () => {
                 className={cn(
                   "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all active:scale-95 shadow-sm",
                   showFilters
-                    ? "bg-slate-600/90 border-slate-600/90 text-white backdrop-blur-sm"
+                    ? "bg-sky-50 border-sky-100 text-sky-900"
                     : "bg-white border-slate-100 text-slate-900",
                 )}
               >
@@ -128,7 +132,7 @@ const Devices: React.FC = () => {
                             statusFilter === status
                               ? cn(
                                   status === "all" &&
-                                    "bg-slate-600/90 border-slate-600/90 text-white shadow-slate-600/10 backdrop-blur-sm",
+                                    "bg-sky-50 border-sky-100 text-sky-900 shadow-sky-500/5",
                                   status === "active" &&
                                     "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-emerald-500/5",
                                   status === "expired" &&
@@ -136,7 +140,7 @@ const Devices: React.FC = () => {
                                   status === "inactive" &&
                                     "bg-slate-50 border-slate-200 text-slate-500 shadow-none",
                                 )
-                              : "bg-white border-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-50/50",
+                              : "bg-white border-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-50",
                           )}
                         >
                           {status === "inactive" ? "Inactive" : status}

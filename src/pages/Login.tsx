@@ -133,7 +133,7 @@ const Login: React.FC = () => {
                   damping: 20,
                   delay: 0.2,
                 }}
-                className="bg-black text-white w-14 h-14 flex items-center justify-center rounded-[8px] font-black text-[42px] leading-none shadow-xl"
+                className="bg-black text-white w-14 h-14 flex items-center justify-center rounded-[8px] font-black text-[42px] leading-none"
               >
                 IO
               </motion.div>
@@ -154,7 +154,7 @@ const Login: React.FC = () => {
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
               animate={ENABLE_LOGO_ANIMATION ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.7, duration: 0.8 }}
-              className="mt-3 w-full flex justify-between items-center origin-top"
+              className="mt-1 w-full flex justify-between items-center origin-top px-0.5"
             >
               <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">
                 global
@@ -195,7 +195,7 @@ const Login: React.FC = () => {
                     placeholder="Full Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
                   />
                 </div>
                 <div className="relative">
@@ -206,7 +206,7 @@ const Login: React.FC = () => {
                     placeholder="Phone Number"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
                   />
                 </div>
                 <div className="relative">
@@ -217,7 +217,7 @@ const Login: React.FC = () => {
                     placeholder="Address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
                   />
                 </div>
               </>
@@ -230,7 +230,7 @@ const Login: React.FC = () => {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
               />
             </div>
             <div className="relative">
@@ -241,7 +241,7 @@ const Login: React.FC = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-[13px] font-bold text-slate-900 shadow-sm focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
               />
             </div>
           </div>
@@ -249,7 +249,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="group mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-bold text-white transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20"
+            className="group mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 py-3 font-bold text-white transition-all hover:bg-sky-700 active:scale-95 disabled:opacity-50 shadow-lg shadow-sky-600/20"
           >
             {loading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -266,7 +266,7 @@ const Login: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full py-0.5 text-center text-[11px] font-bold text-slate-500 hover:text-primary transition-colors"
+            className="w-full py-0.5 text-center text-[11px] font-bold text-slate-500 hover:text-sky-600 transition-colors"
           >
             {isSignUp
               ? "Already have an account? Sign In"
@@ -312,7 +312,7 @@ const Feature = ({
   desc: string;
 }) => (
   <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
       <Icon className="h-5 w-5" />
     </div>
     <div>

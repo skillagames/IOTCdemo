@@ -320,7 +320,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={() => navigate("/scan")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-200/20 bg-sky-100/20 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/80 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100 shadow-sm"
               >
                 <PlusCircle className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
@@ -329,7 +329,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => navigate("/devices")}
-                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-200/20 bg-sky-100/20 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100/80 shadow-sm"
+                className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100 shadow-sm"
               >
                 <Network className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
