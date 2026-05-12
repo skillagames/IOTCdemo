@@ -770,6 +770,16 @@ const Profile: React.FC = () => {
         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-300 opacity-60">
           Build Version: {appInfo.version}
         </p>
+        
+        {/* Brand Attribution - Moved below build version and made lighter */}
+        <div className="flex justify-center opacity-10 grayscale pointer-events-none mt-1">
+          <img 
+            src="/Bslogo.png" 
+            alt="Brand Logo" 
+            className="h-5 w-auto object-contain"
+            referrerPolicy="no-referrer"
+          />
+        </div>
       </div>
 
       {/* Edit Profile Modal */}

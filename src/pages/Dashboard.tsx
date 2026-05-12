@@ -541,7 +541,7 @@ const Dashboard: React.FC = () => {
 
       {/* Cluster Insights Section */}
       {profile?.showInsights !== false && (
-        <section ref={insightsRef} className="space-y-4 pt-2 mt-5">
+        <section ref={insightsRef} className="space-y-4 pt-2 mt-10">
           <div className="flex items-center justify-between pb-2">
             <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
               Network Insights
@@ -737,7 +737,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Brand Partner Logo */}
-      <section className="flex flex-col items-center justify-center pt-2 pb-4 mt-5">
+      <section className="flex flex-col items-center justify-center pt-2 pb-12 mt-14">
         <div className="flex flex-col items-center gap-2.5">
           <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">
             Hardware Partner

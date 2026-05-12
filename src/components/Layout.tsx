@@ -226,7 +226,12 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
-                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-slate-800"
+                    className="absolute -bottom-1 h-1 w-10 rounded-full bg-slate-900 shadow-sm"
+                    transition={{
+                      type: "spring",
+                      bounce: 0.4,
+                      duration: 0.6,
+                    }}
                   />
                 )}
               </button>

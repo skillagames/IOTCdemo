@@ -202,6 +202,20 @@ const Scanner: React.FC = () => {
     };
   }, [activeTab, scanResult, error]);
 
+  useEffect(() => {
+    // Lock scroll and overscroll behavior to prevent the pull-down glitch
+    const originalOverscroll = document.body.style.overscrollBehaviorY;
+    const originalOverflow = document.body.style.overflow;
+    
+    document.body.style.overscrollBehaviorY = "none";
+    document.body.style.overflow = "hidden";
+    
+    return () => {
+      document.body.style.overscrollBehaviorY = originalOverscroll;
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const handleDetected = async (code: string) => {
     try {
       // PROACTIVELY stop the scanner before we process data 
@@ -260,15 +274,12 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="-mt-4 flex flex-col h-[calc(100dvh-150px-env(safe-area-inset-top)-env(safe-area-inset-bottom))]">
-      <div className="z-30 pt-6 pb-0 -mx-4 px-4 shrink-0 relative">
-        {/* Solid Background Layer */}
-        <div className="absolute inset-0 bg-bg-main" />
-
+    <div className="-mt-4 flex flex-col h-[calc(100dvh-150px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] overscroll-y-none overflow-hidden touch-none select-none">
+      <div className="z-40 sticky top-0 -mx-4 px-4 pt-6 pb-2 bg-bg-main shrink-0 touch-none">
         {/* Background Decor Icon - Positioned absolute to the container to avoid clipping */}
         <QrCode className="absolute -top-4 -right-4 h-32 w-32 text-slate-900/[0.03] -rotate-12 pointer-events-none z-10" />
 
-        <header className="relative z-20 px-1 pb-6">
+        <header className="relative z-20 px-1">
           <div className="text-center relative z-10">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
               Add Device
@@ -655,13 +666,15 @@ const Scanner: React.FC = () => {
           0%, 100% { top: 10%; opacity: 0.1; }
           50% { top: 90%; opacity: 1; }
         }
+        #reader {
+          overscroll-behavior-y: none !important;
+        }
         #reader video { 
           width: 100% !important; 
           height: 100% !important; 
           object-fit: cover !important;
           border-radius: 40px !important;
         }
-        /* Completely kill the default library-generated overlay and boundaries */
         #reader__scan_region, #reader__dashboard {
           display: none !important;
         }
