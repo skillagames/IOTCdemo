@@ -228,20 +228,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       backButtonListener = await App.addListener(
         "backButton",
-        ({ canGoBack }) => {
+        () => {
           const path = window.location.pathname;
+          // Root pages are those where we want the double-back-to-exit behavior
+          // Usually just the main entry point or login screen
           const isRootPage =
-            path === "/" || path === "/login" || path === "/dashboard";
+            path === "/" || 
+            path === "/login" || 
+            path === "/dashboard";
 
-          if (!canGoBack || isRootPage) {
+          if (isRootPage) {
             const currentTime = new Date().getTime();
             if (currentTime - lastTimeBackPress < 2000) {
               App.exitApp();
             } else {
               lastTimeBackPress = currentTime;
-              Toast.show({ text: "Press back again to exit" }).catch(() => {});
+              Toast.show({ 
+                text: "Press back again to exit",
+                duration: 'short',
+                position: 'bottom'
+              }).catch(() => {});
             }
           } else {
+            // For sub-pages, use history to go back
             window.history.back();
           }
         },

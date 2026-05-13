@@ -231,11 +231,11 @@ const DeviceItem = ({
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-[16px] font-black tracking-tight text-slate-900 line-clamp-1">
+        <h4 className="text-[14px] font-black tracking-tight text-slate-900 line-clamp-1">
           {device.description || device.name}
         </h4>
         {device.description && (
-          <p className="mt-0.5 line-clamp-1 text-xs font-medium leading-tight text-slate-500">
+          <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-tight text-slate-500">
             {device.name}
           </p>
         )}

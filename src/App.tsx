@@ -158,7 +158,7 @@ const AppContent = () => {
           path="/alerts"
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout showBack>
                 <PageTransition>
                   <Alerts />
                 </PageTransition>
@@ -176,75 +176,6 @@ const AppContent = () => {
 export default function App() {
   useEffect(() => {
     notificationService.initializeChannels();
-
-    // One-time maintenance: Create Admin User
-    const ensureAdmin = async () => {
-      // Don't run multiple times in one session if it's already being handled or failed
-      if (sessionStorage.getItem('admin_checked')) return;
-      sessionStorage.setItem('admin_checked', 'true');
-
-      try {
-        const { 
-          createUserWithEmailAndPassword, 
-          signInWithEmailAndPassword 
-        } = await import("firebase/auth");
-        const { 
-          doc, 
-          setDoc, 
-          getDoc,
-          serverTimestamp 
-        } = await import("firebase/firestore");
-        const { auth, db } = await import("./lib/firebase");
-
-        const adminEmail = "admin@test.com";
-        const adminPass = "admin123";
-
-        try {
-          // 1. Try to create user
-          const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
-          const uid = userCred.user.uid;
-          
-          await setDoc(doc(db, "users", uid), {
-            uid: uid,
-            email: adminEmail,
-            role: "admin",
-            displayName: "System Admin",
-            createdAt: serverTimestamp(),
-            showInsights: true
-          });
-          console.log("Maintenance: Admin user created and provisioned.");
-        } catch (err: any) {
-          if (err.code === "auth/email-already-in-use") {
-            try {
-              const userCred = await signInWithEmailAndPassword(auth, adminEmail, adminPass);
-              const uid = userCred.user.uid;
-              
-              const docSnap = await getDoc(doc(db, "users", uid));
-              if (!docSnap.exists() || docSnap.data()?.role !== "admin") {
-                await setDoc(doc(db, "users", uid), {
-                  uid: uid,
-                  email: adminEmail,
-                  role: "admin",
-                  displayName: "System Admin",
-                  showInsights: true,
-                  updatedAt: serverTimestamp()
-                }, { merge: true });
-                console.log("Maintenance: Admin Firestore record updated.");
-              }
-            } catch (authErr: any) {
-              // Only log if it's not a common network issue
-              if (authErr.code !== 'auth/network-request-failed') {
-                console.warn("Maintenance: Admin profile sync skipped:", authErr.code || authErr.message);
-              }
-            }
-          } else if (err.code !== 'auth/network-request-failed') {
-            console.warn("Maintenance: Admin setup skipped:", err.code || err.message);
-          }
-        }
-      } catch (err) {
-        // Silently fail for bootstrap errors to clean console
-      }
-    };
 
     // One-time maintenance: Populate Devices with Missing Data
     const maintainDevices = async () => {
@@ -287,7 +218,6 @@ export default function App() {
       }
     };
 
-    ensureAdmin();
     maintainDevices();
 
     // One-time maintenance: Populate ICCID for specific device
