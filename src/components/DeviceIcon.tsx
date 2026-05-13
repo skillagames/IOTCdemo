@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 interface DeviceIconProps extends LucideProps {
+  className?: string;
   description?: string;
   name?: string;
 }

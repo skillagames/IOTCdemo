@@ -196,20 +196,39 @@ const DeviceDetails: React.FC = () => {
         </div>
 
         <div className="relative z-10 flex items-start">
-          <div className="flex-1 space-y-1 pr-16 text-left">
-            <h2 className="text-lg font-black text-slate-900 leading-none break-words">
-              {device.description || device.name}
+          <div className="flex-1 space-y-1 pr-8 text-left">
+            <h2 className="text-lg font-black text-slate-900 leading-none break-words flex items-center gap-2 flex-wrap">
+              <span>{device.description || device.name}</span>
+              {!device.description && device.materialCode && (
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest pt-1">
+                  MC: {device.materialCode}
+                </span>
+              )}
             </h2>
             {device.description && (
-              <p className="text-sm font-medium text-slate-500 leading-tight">
-                {device.name}
+              <p className="text-sm font-medium text-slate-500 leading-tight flex items-center gap-2">
+                <span>{device.name}</span>
+                {device.materialCode && (
+                  <>
+                    <span className="text-slate-200 text-xs">•</span>
+                    <span className="text-slate-400">MC: {device.materialCode}</span>
+                  </>
+                )}
               </p>
             )}
             <div className="flex flex-col gap-1 mt-2">
-              <div className="flex items-center gap-2">
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="flex items-center gap-4">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
                   SN: {device.serialNumber}
                 </p>
+                {device.barcode && (
+                  <>
+                    <div className="h-2 w-px bg-slate-200" />
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                      Barcode: {device.barcode}
+                    </p>
+                  </>
+                )}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex flex-col">
@@ -251,7 +270,7 @@ const DeviceDetails: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between border-t border-slate-50 pt-3">
+        <div className="mt-3 flex items-center justify-between border-t border-slate-50 pt-3">
           <div className="flex flex-col">
             <p className="text-[7px] uppercase font-black text-slate-300 tracking-[0.2em] leading-none">
               {isInactive ? "Connectivity" : "Expiration Date"}
@@ -316,8 +335,8 @@ const DeviceDetails: React.FC = () => {
         </div>
         <div className="relative h-[140px] w-full rounded-2xl bg-white border border-slate-200 p-1 shadow-sm overflow-hidden">
           {stats.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300">
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center pt-4">
+              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 mt-2">
                 <Activity className="h-6 w-6" />
               </div>
               <div>
@@ -341,9 +360,9 @@ const DeviceDetails: React.FC = () => {
                   }
                 }}
                 disabled={isRenewing}
-                className="mt-1 rounded-full bg-slate-900 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white active:scale-95 disabled:opacity-50"
+                className="mt-1 mb-6 rounded-full bg-slate-900 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white active:scale-95 disabled:opacity-50"
               >
-                {isRenewing ? "Seeding..." : "Seed History"}
+                {isRenewing ? "Seeding..." : "Dummy History Data"}
               </button>
             </div>
           ) : (

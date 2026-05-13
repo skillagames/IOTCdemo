@@ -233,12 +233,15 @@ const Scanner: React.FC = () => {
       setScanResult(code);
       setIsHardwareLocked(true); // Always lock if found in master registry
       setDeviceInfo({
-        serialNumber: code,
+        serialNumber: hardwareData.serialNumber || code,
         name:
           hardwareData.model ||
           `Terminal ${code.substring(0, 4).toUpperCase()}`,
         imei: hardwareData.imei || "N/A",
         iccid: hardwareData.iccid || "N/A",
+        materialCode: hardwareData.materialCode || "",
+        barcode: hardwareData.barcode || "",
+        description: hardwareData.description || "",
       });
     } catch (err) {
       console.error("Verification error", err);
@@ -262,6 +265,9 @@ const Scanner: React.FC = () => {
         name: deviceInfo.name,
         imei: deviceInfo.imei || "N/A",
         iccid: deviceInfo.iccid || "N/A",
+        materialCode: deviceInfo.materialCode,
+        barcode: deviceInfo.barcode,
+        description: deviceInfo.description,
         ownerId: user.uid,
         planId: "default-plan",
       });
@@ -403,7 +409,7 @@ const Scanner: React.FC = () => {
                   <div className="py-4 space-y-3.5">
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
-                        Friendly Name
+                        Model Number
                       </label>
                       <input
                         type="text"
@@ -417,7 +423,7 @@ const Scanner: React.FC = () => {
 
                     <div className="space-y-1">
                       <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
-                        Description (Optional)
+                        Model Name (Optional)
                       </label>
                       <input
                         type="text"
@@ -470,6 +476,55 @@ const Scanner: React.FC = () => {
                             setDeviceInfo({
                               ...deviceInfo,
                               iccid: e.target.value,
+                            })
+                          }
+                          className={cn(
+                            "w-full rounded-[12px] border-2 py-2 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            isHardwareLocked
+                              ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
+                              : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                          Mat. Code
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="..."
+                          readOnly={isHardwareLocked}
+                          value={deviceInfo?.materialCode}
+                          onChange={(e) =>
+                            setDeviceInfo({
+                              ...deviceInfo,
+                              materialCode: e.target.value,
+                            })
+                          }
+                          className={cn(
+                            "w-full rounded-[12px] border-2 py-2 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            isHardwareLocked
+                              ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
+                              : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                          Barcode
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="..."
+                          readOnly={isHardwareLocked}
+                          value={deviceInfo?.barcode}
+                          onChange={(e) =>
+                            setDeviceInfo({
+                              ...deviceInfo,
+                              barcode: e.target.value,
                             })
                           }
                           className={cn(

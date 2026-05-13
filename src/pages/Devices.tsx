@@ -45,9 +45,13 @@ const Devices: React.FC = () => {
   };
 
   const filteredDevices = devices.filter((d) => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch =
-      d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      d.name.toLowerCase().includes(query) ||
+      d.serialNumber.toLowerCase().includes(query) ||
+      (d.imei && d.imei.toLowerCase().includes(query)) ||
+      (d.materialCode && d.materialCode.toLowerCase().includes(query)) ||
+      (d.barcode && d.barcode.toLowerCase().includes(query));
 
     const matchesStatus =
       statusFilter === "all" || d.subscriptionStatus === statusFilter;
@@ -89,7 +93,7 @@ const Devices: React.FC = () => {
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search serial or name..."
+                  placeholder="Search serial, model, mat. code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-2xl bg-white border border-slate-100 py-3.5 pl-11 pr-4 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none transition-all shadow-sm"
@@ -227,15 +231,15 @@ const DeviceItem = ({
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1 leading-tight">
+        <h4 className="text-[16px] font-black tracking-tight text-slate-900 line-clamp-1">
           {device.description || device.name}
         </h4>
         {device.description && (
-          <p className="mt-1 line-clamp-1 text-[10px] font-medium uppercase tracking-tight leading-tight text-slate-500">
+          <p className="mt-0.5 line-clamp-1 text-xs font-medium leading-tight text-slate-500">
             {device.name}
           </p>
         )}
-        <div className="mt-1.5 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-tight text-slate-400">
+        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight text-slate-400">
           <span>SN:{device.serialNumber.slice(-6)}</span>
           <span className="h-0.5 w-0.5 rounded-full bg-slate-200" />
           <span
@@ -250,8 +254,8 @@ const DeviceItem = ({
             {isExpired
               ? "Subscription Expired"
               : isInactive
-                ? "Inactive Node"
-                : "Active Channel"}
+                ? "Inactive Device"
+                : "Active Subscription"}
           </span>
         </div>
       </div>

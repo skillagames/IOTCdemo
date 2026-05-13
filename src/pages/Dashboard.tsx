@@ -831,15 +831,15 @@ const DeviceCard = ({
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1">
+        <h4 className="text-[16px] font-black tracking-tight text-slate-900 line-clamp-1">
           {device.description || device.name}
         </h4>
         {device.description && (
-          <p className="mt-0.5 text-[10px] font-medium text-slate-500 line-clamp-1">
+          <p className="mt-0.5 line-clamp-1 text-xs font-medium leading-tight text-slate-500">
             {device.name}
           </p>
         )}
-        <div className="flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight">
+        <div className="mt-1 flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight text-slate-400">
           <span
             className={cn(
               isExpired

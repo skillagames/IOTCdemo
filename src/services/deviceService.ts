@@ -22,6 +22,8 @@ export interface Device {
   serialNumber: string;
   imei: string;
   iccid: string;
+  materialCode?: string;
+  barcode?: string;
   name: string;
   description?: string;
   ownerId: string;
@@ -93,14 +95,30 @@ export const deviceService = {
     }
   },
 
-  async verifyHardware(serialNumber: string) {
-    const q = query(
-      collection(db, "master_registry"),
-      where("serialNumber", "==", serialNumber),
-    );
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-    return querySnapshot.docs[0].data();
+  async verifyHardware(code: string) {
+    const registryRef = collection(db, "master_registry");
+    
+    // Check Serial Number
+    const qSN = query(registryRef, where("serialNumber", "==", code));
+    const snapSN = await getDocs(qSN);
+    if (!snapSN.empty) return snapSN.docs[0].data();
+
+    // Check IMEI
+    const qIMEI = query(registryRef, where("imei", "==", code));
+    const snapIMEI = await getDocs(qIMEI);
+    if (!snapIMEI.empty) return snapIMEI.docs[0].data();
+
+    // Check Material Code
+    const qMat = query(registryRef, where("materialCode", "==", code));
+    const snapMat = await getDocs(qMat);
+    if (!snapMat.empty) return snapMat.docs[0].data();
+
+    // Check Barcode
+    const qBar = query(registryRef, where("barcode", "==", code));
+    const snapBar = await getDocs(qBar);
+    if (!snapBar.empty) return snapBar.docs[0].data();
+
+    return null;
   },
 
   async seedMasterRegistry() {
@@ -110,33 +128,39 @@ export const deviceService = {
 
     try {
       const registryRef = collection(db, "master_registry");
-      const q = query(
-        registryRef,
-        where("serialNumber", "==", "6001237010828"),
-      );
+      const devices = [
+        {
+          serialNumber: "6001237010828",
+          imei: "358762109845321",
+          iccid: "89014103211185101234",
+          model: "IoT-Hub-X1",
+          manufacturer: "IoTConnect Labs",
+        },
+        {
+          imei: "869816053499231",
+          serialNumber: "K78038990",
+          materialCode: "303201410",
+          barcode: "6931847166557",
+          model: "DS-MCW407",
+          description: "Body Camera",
+          manufacturer: "Hikvision",
+        }
+      ];
 
-      // Use getDoc if possible, or trust local state if we've already done this recently
-      const snapshot = await getDocs(q);
+      for (const deviceData of devices) {
+        const q = query(
+          registryRef,
+          where("serialNumber", "==", deviceData.serialNumber),
+        );
+        const snapshot = await getDocs(q);
 
-      const masterData = {
-        serialNumber: "6001237010828",
-        imei: "358762109845321",
-        iccid: "89014103211185101234",
-        model: "IoT-Hub-X1",
-        manufacturer: "IoTConnect Labs",
-        lastSeeded: serverTimestamp(),
-      };
-
-      if (snapshot.empty) {
-        await addDoc(registryRef, {
-          ...masterData,
-          createdAt: serverTimestamp(),
-        });
-        console.log("Master Registry: New test device provisioned.");
-      } else {
-        // Only update if we are in "debug/first launch" mode or if we really want to force it
-        // For now, let's just mark as done and avoid the extra updateDoc call if it already exists
-        console.log("Master Registry: Test device verified.");
+        if (snapshot.empty) {
+          await addDoc(registryRef, {
+            ...deviceData,
+            lastSeeded: serverTimestamp(),
+            createdAt: serverTimestamp(),
+          });
+        }
       }
 
       sessionStorage.setItem("master_registry_seeded", "true");
@@ -278,6 +302,8 @@ export const deviceService = {
         serialNumber: "C20210815AAWR12345",
         imei: "358762109845321",
         iccid: "89014103211185101234",
+        materialCode: "303201410",
+        barcode: "6931847166557",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 15),
       },
@@ -287,6 +313,8 @@ export const deviceService = {
         serialNumber: "C20210920BBWR98765",
         imei: "862341056789123",
         iccid: "89441012345678901234",
+        materialCode: "303201411",
+        barcode: "6931847166558",
         subscriptionStatus: "expired",
         expirationDate: addDays(new Date(), -5),
       },
@@ -296,6 +324,8 @@ export const deviceService = {
         serialNumber: "C20211010CCWR54321",
         imei: "447788992233110",
         iccid: "89852033445566778899",
+        materialCode: "303201412",
+        barcode: "6931847166559",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 45),
       },
@@ -305,17 +335,10 @@ export const deviceService = {
         serialNumber: "C20211105DDWR11223",
         imei: "112233445566778",
         iccid: "89000000000000000001",
+        materialCode: "303201413",
+        barcode: "6931847166560",
         subscriptionStatus: "expired",
         expirationDate: addDays(new Date(), -12),
-      },
-      {
-        name: "iDS-2CD7146G0-IZS",
-        description: "AI CCTV Camera",
-        serialNumber: "C20211201EEWR88990",
-        imei: "998877665544332",
-        iccid: "89999999999999999992",
-        subscriptionStatus: "expired",
-        expirationDate: addDays(new Date(), -30),
       },
       {
         name: "DS-3E0105P-E",
@@ -323,6 +346,8 @@ export const deviceService = {
         serialNumber: "C20220115FFWR55667",
         imei: "554433221100998",
         iccid: "89777777777777777773",
+        materialCode: "303201414",
+        barcode: "6931847166561",
         subscriptionStatus: "active",
         expirationDate: addDays(new Date(), 120),
       },
@@ -332,6 +357,8 @@ export const deviceService = {
         serialNumber: "C20220228GGWR33445",
         imei: "123456789012345",
         iccid: "89123456789012345678",
+        materialCode: "303201415",
+        barcode: "6931847166562",
         subscriptionStatus: "inactive",
         expirationDate: addDays(new Date(), 60),
       },
@@ -341,6 +368,8 @@ export const deviceService = {
         serialNumber: "C20220310HHWR77889",
         imei: "987654321098765",
         iccid: "89987654321098765432",
+        materialCode: "303201416",
+        barcode: "6931847166563",
         subscriptionStatus: "inactive",
         expirationDate: addDays(new Date(), -10),
       },
