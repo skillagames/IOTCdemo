@@ -115,16 +115,16 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   damping: 20,
                   delay: 0.1,
                 }}
-                className="bg-black text-white w-8 h-8 flex items-center justify-center rounded-[4px] font-black text-[22px] leading-none shadow-sm"
+                className="bg-black text-white w-8 h-8 flex items-center justify-center rounded-[4px] font-montserrat font-bold text-[22px] leading-none shadow-sm"
               >
                 IO
               </motion.div>
-              <div className="flex flex-col leading-none">
+              <div className="flex flex-col translate-y-[0px]">
                 <motion.span
                   initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
                   animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-xl font-black tracking-tight text-slate-900 pl-0.5"
+                  className="text-xl font-montserrat font-extrabold tracking-tight text-slate-900 leading-tight pl-0.5 inline-block scale-y-115 origin-center"
                 >
                   tConnect
                 </motion.span>
@@ -135,17 +135,17 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
               animate={ENABLE_LOGO_ANIMATION ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="mt-0.5 flex justify-center items-center gap-2 origin-top"
+              className="mt-0.5 flex justify-between items-center w-full origin-top"
             >
-              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[7.5px] font-medium font-montserrat text-slate-400 whitespace-nowrap">
                 global
               </span>
-              <span className="text-[8px] font-light text-slate-200">|</span>
-              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[7.5px] font-light text-slate-200">|</span>
+              <span className="text-[7.5px] font-medium font-montserrat text-slate-400 whitespace-nowrap">
                 iot
               </span>
-              <span className="text-[8px] font-light text-slate-200">|</span>
-              <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap">
+              <span className="text-[7.5px] font-light text-slate-200">|</span>
+              <span className="text-[7.5px] font-medium font-montserrat text-slate-400 whitespace-nowrap">
                 connectivity
               </span>
             </motion.div>
@@ -216,7 +216,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                 {/* Notification indicator moved to top header */}
                 <span
                   className={cn(
-                    "text-[9px] uppercase tracking-[0.1em] font-black transition-all",
+                    "text-[9px] uppercase tracking-[0.1em] font-black font-montserrat transition-all",
                     isActive ? "opacity-100 scale-100" : "opacity-60 scale-95",
                   )}
                 >

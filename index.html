@@ -7,14 +7,21 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="theme-color" content="#ffffff" />
     <title>IoT Connect App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       html, body {
         margin: 0;
         padding: 0;
         background-color: #ffffff !important;
+        width: 100%;
+        height: 100%;
       }
       #root {
         background-color: #ffffff;
+        width: 100%;
+        height: 100%;
       }
     </style>
     <script>
@@ -39,10 +46,41 @@
   </head>
   <body>
     <div id="root">
-      <div style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #ffffff; z-index: 9999;">
-        <div style="font-family: system-ui, -apple-system, sans-serif; font-weight: 900; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: #0f172a;">Synchronizing</div>
+      <div style="position: fixed; inset: 0; display: flex; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; background-color: #ffffff; z-index: 9999;">
+        <div style="position: relative; margin-bottom: 2rem; display: flex; height: 5rem; width: 5rem; align-items: center; justify-content: center;">
+          <!-- Spinning Outer Ring -->
+          <div style="position: absolute; inset: 0; border-radius: 9999px; border: 3px solid #f1f5f9; border-top-color: #0f172a; animation: spin 1.5s linear infinite;"></div>
+          
+          <!-- Pulsing Inner Circle with IO -->
+          <div style="position: relative; display: flex; height: 3.5rem; width: 3.5rem; align-items: center; justify-content: center; background-color: #000000; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); animation: pulse 1.5s ease-in-out infinite;">
+            <span style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ffffff; line-height: 1;">IO</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: #0f172a; line-height: 1;">Synchronizing</span>
+          <div style="margin-top: 0.5rem; display: flex; gap: 0.25rem;">
+            <div style="height: 0.25rem; width: 0.25rem; border-radius: 9999px; background-color: #0f172a; animation: dotPulse 1s infinite; animation-delay: 0s;"></div>
+            <div style="height: 0.25rem; width: 0.25rem; border-radius: 9999px; background-color: #0f172a; animation: dotPulse 1s infinite; animation-delay: 0.2s;"></div>
+            <div style="height: 0.25rem; width: 0.25rem; border-radius: 9999px; background-color: #0f172a; animation: dotPulse 1s infinite; animation-delay: 0.4s;"></div>
+          </div>
+        </div>
       </div>
     </div>
+    <style>
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { scale: 1; }
+        50% { scale: 1.05; }
+      }
+      @keyframes dotPulse {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+      }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

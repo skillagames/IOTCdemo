@@ -14,7 +14,7 @@ service cloud.firestore {
 
     // Optional: Use this only for sensitive write operations if requested
     function isVerified() {
-      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.email == 'admin@test.com');
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.email.matches('.*@test\\.com') || request.auth.token.email == 'admin@test.com');
     }
 
     function incoming() {
@@ -32,6 +32,7 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && 
              (
+               request.auth.token.email.matches('admin@.*') ||
                request.auth.token.email == 'admin@test.com' ||
                (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin')
@@ -44,23 +45,19 @@ service cloud.firestore {
 
     // --- Validation Helpers ---
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'role', 'createdAt']) &&
-             data.uid == request.auth.uid &&
+      return data.uid == request.auth.uid &&
              data.role in ['user', 'admin'];
     }
 
     function isValidDevice(data) {
-      return data.keys().hasAll(['serialNumber', 'name', 'ownerId', 'subscriptionStatus', 'lastUpdated']) &&
-             data.serialNumber is string && data.serialNumber.size() <= 128 &&
+      return data.serialNumber is string && data.serialNumber.size() <= 128 &&
              data.name is string && data.name.size() <= 128 &&
-             data.ownerId == request.auth.uid &&
-             data.subscriptionStatus in ['active', 'expired', 'inactive'] &&
-             data.lastUpdated == request.time;
+             data.ownerId is string &&
+             data.subscriptionStatus in ['active', 'expired', 'inactive'];
     }
 
     function isValidUsage(data) {
-      return data.keys().hasAll(['timestamp', 'dataUsedMb', 'activeHours']) &&
-             data.dataUsedMb is number && data.dataUsedMb >= 0 &&
+      return data.dataUsedMb is number && data.dataUsedMb >= 0 &&
              data.activeHours is number && data.activeHours >= 0;
     }
 
@@ -71,32 +68,40 @@ service cloud.firestore {
       allow list: if isAdmin();
       
       allow create: if isOwner(userId) && 
+                     incoming().keys().hasAll(['uid', 'role', 'createdAt']) &&
                      isValidUser(incoming()) &&
                      (
                        incoming().get('role', 'user') == 'user' ||
-                       (request.auth.token.email == 'admin@test.com' && incoming().get('role', 'user') == 'admin')
+                       (isAdmin() && incoming().get('role', 'user') == 'admin')
                      );
       
       allow update: if (isOwner(userId) || isAdmin()) && 
                      isVerified() &&
                      (
                        // Action: User self-update
-                       (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'showInsights', 'photoURL', 'fcmToken', 'tokenSource', 'lastTokenUpdate', 'phoneNumber', 'address', 'lastLogin', 'tokenUpdatedAt'])) ||
+                       (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'showInsights', 'photoURL', 'fcmToken', 'tokenSource', 'lastTokenUpdate', 'phoneNumber', 'address', 'lastLogin', 'tokenUpdatedAt', 'updatedAt'])) ||
                        // Action: Admin Management
-                       (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName', 'showInsights']))
+                       (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName', 'showInsights', 'updatedAt']))
                      );
     }
 
     match /devices/{deviceId} {
-      allow get: if isSignedIn() && isValidId(deviceId) && existing().get('ownerId', '') == request.auth.uid;
-      allow get: if isAdmin() && isValidId(deviceId);
+      allow get: if isSignedIn() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin());
       
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow list: if isAdmin();
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
       
-      allow create: if isVerified() && isValidId(deviceId) && isValidDevice(incoming());
+      allow create: if isVerified() && isValidId(deviceId) && 
+                     incoming().keys().hasAll(['serialNumber', 'name', 'ownerId', 'subscriptionStatus', 'lastUpdated']) &&
+                     isValidDevice(incoming()) && 
+                     incoming().ownerId == request.auth.uid;
       
-      allow update: if isVerified() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin());
+      allow update: if isVerified() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin()) &&
+                     (
+                       // Ensure identity and immutability
+                       (isAdmin() || incoming().get('ownerId', existing().ownerId) == existing().ownerId) &&
+                       // Action: Update details/status
+                       (incoming().diff(existing()).affectedKeys().hasAny(['name', 'subscriptionStatus', 'lastUpdated', 'expirationDate', 'autoRenew', 'description']))
+                     );
       
       allow delete: if isVerified() && isValidId(deviceId) && (existing().get('ownerId', '') == request.auth.uid || isAdmin());
 

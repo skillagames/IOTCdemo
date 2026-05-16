@@ -6,9 +6,11 @@ import {
   AlertCircle,
   ChevronRight,
   SlidersHorizontal,
+  MapPin,
   X,
   Activity,
   Server,
+  Database,
 } from "lucide-react";
 import { deviceService, Device } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
@@ -57,6 +59,10 @@ const Devices: React.FC = () => {
       statusFilter === "all" || d.subscriptionStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    const timeA = a.createdAt?.toDate?.()?.getTime() || a.createdAt?.getTime?.() || 0;
+    const timeB = b.createdAt?.toDate?.()?.getTime() || b.createdAt?.getTime?.() || 0;
+    return timeB - timeA;
   });
 
   if (loading)
@@ -79,10 +85,10 @@ const Devices: React.FC = () => {
 
         <header className="relative z-20 px-1 pb-6">
           <div className="text-center relative z-10">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+            <h1 className="text-2xl font-black font-montserrat tracking-tight text-slate-900 leading-none">
               Device Inventory
             </h1>
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <p className="mt-2 text-[10px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-400">
               Total Infrastructure: {devices.length} Devices
             </p>
           </div>
@@ -132,7 +138,7 @@ const Devices: React.FC = () => {
                             )
                           }
                           className={cn(
-                            "flex-1 rounded-xl py-2.5 text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border",
+                            "flex-1 rounded-xl py-2.5 text-[8px] font-black font-montserrat uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border",
                             statusFilter === status
                               ? cn(
                                   status === "all" &&
@@ -196,14 +202,32 @@ const DeviceItem = ({
   device: Device;
   onClick: () => void;
 }) => {
-  const isExpired = device.subscriptionStatus === "expired";
+  const isStatusExpired = device.subscriptionStatus === "expired";
   const isInactive = device.subscriptionStatus === "inactive";
+
+  const expirationDate = device.expirationDate?.toDate 
+    ? device.expirationDate.toDate() 
+    : (device.expirationDate instanceof Date 
+        ? device.expirationDate 
+        : (device.expirationDate?.seconds 
+            ? new Date(device.expirationDate.seconds * 1000) 
+            : new Date(device.expirationDate)));
+            
+  const isPlanExpired = isStatusExpired && expirationDate && expirationDate < new Date();
+  const isDataExpired = isStatusExpired && (device.remainingDataMb || 0) <= 0;
+  const isExpired = isStatusExpired;
+
+  // Check if "New" (added in last 48 hours)
+  const createdAtDate = device.createdAt?.toDate?.() || 
+                       (device.createdAt instanceof Date ? device.createdAt : 
+                       (device.createdAt?.seconds ? new Date(device.createdAt.seconds * 1000) : null));
+  const isNew = createdAtDate && (new Date().getTime() - createdAtDate.getTime()) < 48 * 60 * 60 * 1000;
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "group relative flex w-full items-center gap-4 overflow-hidden rounded-[26px] bg-white p-2.5 pr-6 border transition-all active:scale-[0.98] shadow-sm",
+        "group relative flex w-full items-center gap-4 rounded-[26px] bg-white p-2.5 pr-6 border transition-all active:scale-[0.98] shadow-sm",
         isExpired
           ? "border-red-100/50 active:border-red-500 active:shadow-red-500/5 md:hover:border-red-500 md:hover:shadow-red-500/5"
           : isInactive
@@ -211,6 +235,18 @@ const DeviceItem = ({
             : "border-slate-100 active:border-emerald-500 active:shadow-xl active:shadow-emerald-500/5 md:hover:border-emerald-500 md:hover:shadow-xl md:hover:shadow-emerald-500/5",
       )}
     >
+      {/* NEW Badge */}
+      {isNew && (
+        <div className="absolute -top-1.5 right-4 z-20">
+          <div className="flex items-center gap-1 rounded-full bg-slate-900 px-2.5 py-0.5 shadow-md shadow-slate-200 ring-1 ring-white/20">
+            <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[7px] font-black font-montserrat uppercase tracking-[0.05em] text-white">
+              New
+            </span>
+          </div>
+        </div>
+      )}
+
       <div
         className={cn(
           "flex h-15 w-15 shrink-0 items-center justify-center rounded-[20px] transition-colors",
@@ -220,7 +256,7 @@ const DeviceItem = ({
           isExpired &&
             "bg-red-50 text-red-500 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
           isInactive &&
-            "bg-slate-50 text-slate-300 group-active:bg-slate-500 group-active:text-white md:group-hover:bg-slate-500 md:group-hover:text-white",
+            "bg-slate-100 text-slate-400 group-active:bg-slate-600 group-active:text-white md:group-hover:bg-slate-600 md:group-hover:text-white",
         )}
       >
         <DeviceIcon
@@ -231,17 +267,19 @@ const DeviceItem = ({
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-[14px] font-black tracking-tight text-slate-900 line-clamp-1">
+        <h4 className="text-[14px] font-black font-montserrat tracking-tight text-slate-900 line-clamp-1">
           {device.description || device.name}
         </h4>
-        {device.description && (
-          <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-tight text-slate-500">
-            {device.name}
-          </p>
-        )}
-        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight text-slate-400">
-          <span>SN:{device.serialNumber.slice(-6)}</span>
-          <span className="h-0.5 w-0.5 rounded-full bg-slate-200" />
+        <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-tight text-slate-500 flex items-center gap-1">
+          <MapPin className="h-2.5 w-2.5 text-slate-400" />
+          {device.location || "Location Not Set"}
+        </p>
+        <div
+          className={cn(
+            "mt-1.5 flex items-center tabular-nums text-[10px] font-bold uppercase tracking-tight text-slate-400",
+            !isExpired && !isInactive ? "justify-between" : "gap-1.5",
+          )}
+        >
           <span
             className={cn(
               isExpired
@@ -251,12 +289,27 @@ const DeviceItem = ({
                   : "text-emerald-500",
             )}
           >
-            {isExpired
-              ? "Subscription Expired"
-              : isInactive
-                ? "Inactive Device"
-                : "Active Subscription"}
+            {isPlanExpired ? "Plan Expired" : isDataExpired ? "Data Expired" : isExpired ? "Expired" : isInactive ? "Inactive" : "Active"}
           </span>
+
+          {!isExpired && !isInactive && (
+            <>
+              <div className="flex items-center gap-1 rounded-md bg-slate-100/80 px-1.5 py-0.5 text-slate-700 ring-1 ring-slate-200/50 text-[9px]">
+                <Database className="h-2 w-2 text-slate-500" />
+                <span className="font-black">{device.remainingDataMb?.toFixed(0)} MB</span>
+              </div>
+              <span className="text-slate-400 text-right">
+                EXP {formatDate(device.expirationDate, "dd/MM/yy")}
+              </span>
+            </>
+          )}
+
+          {(isExpired || isInactive) && (
+            <>
+              <span className="h-0.5 w-0.5 rounded-full bg-slate-200" />
+              <span>SN:{device.serialNumber.slice(-6)}</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -269,7 +322,7 @@ const DeviceItem = ({
           isExpired &&
             "text-red-500 group-active:bg-red-500 group-active:text-white md:group-hover:bg-red-500 md:group-hover:text-white",
           isInactive &&
-            "text-slate-300 group-active:bg-slate-500 group-active:text-white md:group-hover:bg-slate-500 md:group-hover:text-white",
+            "text-slate-400 group-active:bg-slate-600 group-active:text-white md:group-hover:bg-slate-600 md:group-hover:text-white",
         )}
       >
         <ChevronRight className="h-3.5 w-3.5" />

@@ -8,7 +8,7 @@ import {
   LayoutGrid,
   Cpu,
   Smartphone,
-  Mic2,
+  Eye,
   LucideProps,
 } from "lucide-react";
 
@@ -29,6 +29,14 @@ export const DeviceIcon = ({
   if (text.includes("intercom") || text.includes("doorbell")) {
     if (text.includes("video")) return <Video {...props} />;
     return <Phone {...props} />;
+  }
+
+  if (text.includes("turret") || text.includes("bullet")) {
+    return <Cctv {...props} />;
+  }
+
+  if (text.includes("dome")) {
+    return <Eye {...props} />;
   }
 
   if (text.includes("camera") || text.includes("cctv"))

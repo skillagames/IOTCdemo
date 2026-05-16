@@ -35,8 +35,8 @@ const Admin: React.FC = () => {
     <div className="space-y-6 pb-12">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Control Center</h2>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+          <h2 className="text-2xl font-bold font-montserrat text-slate-900">Control Center</h2>
+          <p className="text-[10px] text-slate-500 font-black font-montserrat uppercase tracking-widest">
             Network Administration
           </p>
         </div>
@@ -50,7 +50,7 @@ const Admin: React.FC = () => {
         <button
           onClick={() => setActiveTab("users")}
           className={cn(
-            "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all",
+            "flex-1 py-1.5 rounded-lg text-xs font-black font-montserrat transition-all",
             activeTab === "users"
               ? "bg-primary text-white shadow-md shadow-primary/20"
               : "text-slate-500 hover:text-slate-900",
@@ -61,7 +61,7 @@ const Admin: React.FC = () => {
         <button
           onClick={() => setActiveTab("devices")}
           className={cn(
-            "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all",
+            "flex-1 py-1.5 rounded-lg text-xs font-black font-montserrat transition-all",
             activeTab === "devices"
               ? "bg-primary text-white shadow-md shadow-primary/20"
               : "text-slate-500 hover:text-slate-900",
@@ -77,7 +77,7 @@ const Admin: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4 rounded-2xl bg-slate-800 p-4 shadow-xl">
-          <div className="grid grid-cols-4 gap-2 border-b border-white/10 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <div className="grid grid-cols-4 gap-2 border-b border-white/10 pb-2 text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-500">
             <span className="col-span-2">Entity</span>
             <span>Status</span>
             <span className="text-right">Action</span>
@@ -140,8 +140,8 @@ const AdminItem = ({
       {icon}
     </div>
     <div className="flex-1 min-w-0">
-      <h4 className="font-bold text-white text-xs truncate">{title}</h4>
-      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
+      <h4 className="font-bold font-montserrat text-white text-xs truncate">{title}</h4>
+      <p className="text-[9px] font-black font-montserrat uppercase tracking-tight text-slate-500">
         {subtitle}
       </p>
     </div>

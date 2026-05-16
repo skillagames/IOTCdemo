@@ -115,40 +115,40 @@ const Login: React.FC = () => {
       >
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex flex-col items-center group w-max">
-            <div className="flex items-center gap-0 whitespace-nowrap">
-              <motion.div
-                initial={
-                  ENABLE_LOGO_ANIMATION
-                    ? { scale: 0.5, opacity: 0, rotate: -15 }
-                    : {}
-                }
-                animate={
-                  ENABLE_LOGO_ANIMATION
-                    ? { scale: 1, opacity: 1, rotate: 0 }
-                    : {}
-                }
-                transition={{
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                  delay: 0.2,
-                }}
-                className="bg-black text-white w-14 h-14 flex items-center justify-center rounded-[8px] font-black text-[42px] leading-none"
-              >
-                IO
-              </motion.div>
-
-              <div className="flex flex-col items-start leading-none mt-1">
-                <motion.span
-                  initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
-                  animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                  className="text-4xl font-black tracking-tight text-slate-900 leading-none pl-0.5"
+              <div className="flex items-center gap-0 whitespace-nowrap">
+                <motion.div
+                  initial={
+                    ENABLE_LOGO_ANIMATION
+                      ? { scale: 0.5, opacity: 0, rotate: -15 }
+                      : {}
+                  }
+                  animate={
+                    ENABLE_LOGO_ANIMATION
+                      ? { scale: 1, opacity: 1, rotate: 0 }
+                      : {}
+                  }
+                  transition={{
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                    delay: 0.2,
+                  }}
+                  className="bg-black text-white w-14 h-14 flex items-center justify-center rounded-[8px] font-montserrat font-bold text-[42px] leading-none"
                 >
-                  tConnect
-                </motion.span>
+                  IO
+                </motion.div>
+
+                <div className="flex flex-col items-start translate-y-[0px]">
+                  <motion.span
+                    initial={ENABLE_LOGO_ANIMATION ? { x: -10, opacity: 0 } : {}}
+                    animate={ENABLE_LOGO_ANIMATION ? { x: 0, opacity: 1 } : {}}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className="text-4xl font-montserrat font-extrabold tracking-tight text-slate-900 leading-tight pl-0.5 inline-block scale-y-115 origin-center"
+                  >
+                    tConnect
+                  </motion.span>
+                </div>
               </div>
-            </div>
 
             <motion.div
               initial={ENABLE_LOGO_ANIMATION ? { opacity: 0, y: -2 } : {}}
@@ -255,7 +255,7 @@ const Login: React.FC = () => {
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
             ) : (
               <>
-                <span className="text-xs uppercase tracking-wider">
+                <span className="text-xs font-montserrat uppercase tracking-wider">
                   {isSignUp ? "Create Account" : "Sign In"}
                 </span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -293,7 +293,7 @@ const Login: React.FC = () => {
         )}
 
         <div className="pt-2 text-center">
-          <p className="text-[8px] uppercase font-bold tracking-[0.3em] text-slate-300">
+          <p className="text-[8px] uppercase font-black font-montserrat tracking-[0.3em] text-slate-300">
             Secure Core V1.2.0
           </p>
         </div>
@@ -316,7 +316,7 @@ const Feature = ({
       <Icon className="h-5 w-5" />
     </div>
     <div>
-      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+      <h3 className="text-sm font-bold font-montserrat text-slate-900">{title}</h3>
       <p className="text-[11px] font-medium text-slate-500">{desc}</p>
     </div>
   </div>

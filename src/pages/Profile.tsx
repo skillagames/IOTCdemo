@@ -21,6 +21,9 @@ import {
   Activity,
   Headset,
   Download,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { formatDate, cn } from "../lib/utils";
 import { auth, db } from "../lib/firebase";
@@ -222,52 +225,67 @@ const Profile: React.FC = () => {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-slate-100 text-slate-900 shadow-sm border border-slate-200">
           <User className="h-8 w-8" />
         </div>
-        <h2 className="mt-3 text-xl font-black tracking-tight text-slate-900 leading-none">
+        <h2 className="mt-3 text-xl font-black font-montserrat tracking-tight text-slate-900 leading-none">
           {profile.displayName || profile.email.split("@")[0]}
         </h2>
 
-        {/* Optimized Info Grid */}
-        <section className="w-full grid grid-cols-2 gap-2 mt-6">
-          <div className="flex items-center gap-3 rounded-[20px] bg-slate-100 p-2.5 shadow-sm border border-slate-200 text-left">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
-              <Shield className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[8px] font-black uppercase tracking-widest text-sky-600 leading-none mb-1">
-                Identity
-              </p>
-              <p className="font-bold text-slate-900 uppercase text-[11px] truncate">
-                {profile.role}
-              </p>
-            </div>
-          </div>
+        {/* Refined Streamlined Info Section */}
+        <section className="mt-8 px-1">
+          <div className="space-y-4">
+            {/* Identity & Status - Restore Boxed Layout */}
+            <div className="grid grid-cols-2 gap-2 pb-4 border-b border-slate-50">
+              <div className="flex items-center gap-3 rounded-[20px] bg-slate-100/80 p-2.5 shadow-sm border border-slate-200/50 text-left">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
+                  <Shield className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[8px] font-black font-montserrat uppercase tracking-widest text-indigo-600/60 leading-none mb-1">
+                    Identity
+                  </p>
+                  <p className="font-bold text-slate-900 uppercase text-[10px] truncate tracking-tight">
+                    {profile.role}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-3 rounded-[20px] bg-slate-100 p-2.5 shadow-sm border border-slate-200 text-left">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
-              <Calendar className="h-4 w-4" />
+              <div className="flex items-center gap-3 rounded-[20px] bg-slate-100/80 p-2.5 shadow-sm border border-slate-200/50 text-left">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
+                  <Calendar className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[8px] font-black font-montserrat uppercase tracking-widest text-sky-600/60 leading-none mb-1">
+                    Joined
+                  </p>
+                  <p className="font-bold text-slate-900 text-[10px] truncate tracking-tight">
+                    {formatDate(profile?.createdAt, "MMM dd, yy")}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[8px] font-black uppercase tracking-widest text-sky-600 leading-none mb-1">
-                Joined
-              </p>
-              <p className="font-bold text-slate-900 text-[11px] truncate">
-                {formatDate(profile?.createdAt, "MMM dd, yy")}
-              </p>
+
+            {/* Contact Details List - Clean Centered */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-center gap-3 text-slate-600">
+                <Mail className="h-3.5 w-3.5 opacity-40 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-900">{profile.email}</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 text-slate-600">
+                <Phone className="h-3.5 w-3.5 opacity-40 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-900">
+                  {profile.phoneNumber || "No Contact Data"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 text-slate-600">
+                <MapPin className="h-3.5 w-3.5 opacity-40 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-900">
+                  {profile.address || "No Address Data"}
+                </span>
+              </div>
             </div>
           </div>
         </section>
-
-        <div className="mt-6 flex flex-col space-y-1">
-          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-            {profile.email}
-          </p>
-          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-            {profile.phoneNumber || "+1 (555) 000-0000"}
-          </p>
-          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-            {profile.address || "123 Tech Avenue, Silicon Valley"}
-          </p>
-        </div>
       </header>
 
       {/* Action Buttons */}
@@ -275,7 +293,7 @@ const Profile: React.FC = () => {
         {/* Log Out Button */}
         <button
           onClick={handleLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[10px] font-black font-montserrat uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-[0.98]"
         >
           <LogOut className="h-3.5 w-3.5" />
           Terminate Session
@@ -283,7 +301,7 @@ const Profile: React.FC = () => {
 
         <button
           onClick={() => {}}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 border border-slate-200 py-3 text-[10px] font-black uppercase tracking-widest text-sky-600 hover:bg-slate-200/50 transition-all active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 border border-slate-200 py-3 text-[10px] font-black font-montserrat uppercase tracking-widest text-sky-600 hover:bg-slate-200/50 transition-all active:scale-[0.98]"
         >
           <Headset className="h-4 w-4" />
           Operational Support
@@ -304,7 +322,7 @@ const Profile: React.FC = () => {
         >
           <div className="flex items-center gap-2">
             <Terminal className="h-3.5 w-3.5 text-primary" />
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <h3 className="text-[10px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-500">
               Developer Tools
             </h3>
           </div>
@@ -327,7 +345,7 @@ const Profile: React.FC = () => {
             >
               <div className="rounded-[28px] border border-slate-900 bg-slate-900 p-5 text-white shadow-xl shadow-slate-900/10">
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-emerald-400">
+                  <h4 className="text-xs font-bold font-montserrat text-emerald-400">
                     Simulation Mode
                   </h4>
                   <p className="text-[9px] font-medium text-slate-400">
@@ -349,7 +367,7 @@ const Profile: React.FC = () => {
                     ) : (
                       <Database className="h-3.5 w-3.5 text-white" />
                     )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-left">
+                    <span className="text-[10px] font-black font-montserrat uppercase tracking-widest text-left">
                       {loading
                         ? "Transmitting..."
                         : success
@@ -370,7 +388,7 @@ const Profile: React.FC = () => {
                     ) : (
                       <Eye className="h-3.5 w-3.5 text-emerald-400" />
                     )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                    <span className="text-[10px] font-black font-montserrat uppercase tracking-widest text-white/70">
                       {profile?.showInsights === false
                         ? "Enable Insights Mode"
                         : "Disable Insights Mode"}
@@ -392,7 +410,7 @@ const Profile: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <RefreshCw className="h-3.5 w-3.5 text-blue-400" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                    <span className="text-[10px] font-black font-montserrat uppercase tracking-widest text-white/70">
                       Reload Workspace
                     </span>
                   </div>
@@ -400,7 +418,7 @@ const Profile: React.FC = () => {
 
                 {/* --- Capacitor Native Engine Section --- */}
                 <div className="mt-6 border-t border-slate-700/50 pt-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-sky-400/90 mb-2 flex items-center justify-between">
+                  <h4 className="text-[10px] font-black font-montserrat uppercase tracking-[0.1em] text-sky-400/90 mb-2 flex items-center justify-between">
                     <span>Capacitor Native Engine</span>
                     <Activity className="h-3.5 w-3.5 text-sky-400" />
                   </h4>
@@ -436,13 +454,13 @@ const Profile: React.FC = () => {
                     >
                       {capSuccess && (
                         <div className="absolute inset-0 bg-emerald-500 flex items-center justify-center z-10 animate-in fade-in zoom-in duration-300">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-950 flex items-center gap-2">
+                          <span className="text-[9px] font-black font-montserrat uppercase tracking-widest text-emerald-950 flex items-center gap-2">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             Payload Transmitted
                           </span>
                         </div>
                       )}
-                      <span className="block text-[9px] font-black uppercase tracking-widest text-sky-950 relative z-0">
+                      <span className="block text-[9px] font-black font-montserrat uppercase tracking-widest text-sky-950 relative z-0">
                         Dispatch Native Alert
                       </span>
                       <BellRing className="h-3.5 w-3.5 text-sky-950 relative z-0" />
@@ -463,7 +481,7 @@ const Profile: React.FC = () => {
 
                 {/* --- Firebase Cloud Messaging Section --- */}
                 <div className="mt-6 border-t border-slate-700/50 pt-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-400/90 mb-2 flex items-center justify-between">
+                  <h4 className="text-[10px] font-black font-montserrat uppercase tracking-[0.1em] text-emerald-400/90 mb-2 flex items-center justify-between">
                     <span>Remote FCM Configuration</span>
                     <Activity className="h-3.5 w-3.5 text-emerald-400" />
                   </h4>
@@ -508,7 +526,7 @@ const Profile: React.FC = () => {
                             }}
                             className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 text-emerald-400 hover:bg-emerald-500/30 transition-all border border-emerald-500/20"
                           >
-                            <span className="text-[8px] font-black uppercase tracking-widest">
+                            <span className="text-[8px] font-black font-montserrat uppercase tracking-widest">
                               Copy Token for Firebase Console
                             </span>
                           </button>
@@ -533,7 +551,7 @@ const Profile: React.FC = () => {
                 {/* Designer Tools Section */}
                 <details className="mt-8 group [&_summary::-webkit-details-marker]:hidden">
                   <summary className="list-none outline-none cursor-pointer border-t border-slate-700/50 pt-4 pb-2 transition-opacity hover:opacity-80">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.1em] text-fuchsia-400/90 flex items-center justify-between">
+                    <h4 className="text-[10px] font-black font-montserrat uppercase tracking-[0.1em] text-fuchsia-400/90 flex items-center justify-between">
                       <span>Designer Assets</span>
                       <Edit3 className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
                     </h4>
@@ -574,10 +592,10 @@ const Profile: React.FC = () => {
                                   dominantBaseline="middle"
                                   textAnchor="middle"
                                   fill="black"
-                                  fontFamily="'Inter', -apple-system, system-ui, sans-serif"
-                                  fontWeight="900"
+                                  fontFamily="'Montserrat', sans-serif"
+                                  fontWeight="700"
                                   fontSize="940"
-                                  letterSpacing="-65"
+                                  letterSpacing="-30"
                                 >
                                   <tspan dx="-40">I</tspan>
                                   <tspan dx="45">O</tspan>
@@ -638,7 +656,7 @@ const Profile: React.FC = () => {
                           document.body.removeChild(a);
                           URL.revokeObjectURL(url);
                         }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-fuchsia-500 py-3 text-[9px] font-black uppercase tracking-widest text-fuchsia-950 transition-all hover:bg-fuchsia-400 active:scale-95"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-fuchsia-500 py-3 text-[9px] font-black font-montserrat uppercase tracking-widest text-fuchsia-950 transition-all hover:bg-fuchsia-400 active:scale-95"
                       >
                         <Save className="h-3.5 w-3.5" />
                         Download Android Icon
@@ -676,13 +694,13 @@ const Profile: React.FC = () => {
                                     dominantBaseline="middle"
                                     textAnchor="middle"
                                     fill="black"
-                                    fontFamily="'Inter', -apple-system, system-ui, sans-serif"
-                                    fontWeight="900"
+                                    fontFamily="'Montserrat', sans-serif"
+                                    fontWeight="700"
                                     fontSize="940"
-                                    letterSpacing="-65"
+                                    letterSpacing="-15"
                                   >
-                                    <tspan dx="-40">I</tspan>
-                                    <tspan dx="45">O</tspan>
+                                    <tspan dx="-25">I</tspan>
+                                    <tspan dx="30">O</tspan>
                                   </text>
                                 </mask>
                               </defs>
@@ -716,8 +734,8 @@ const Profile: React.FC = () => {
   <defs>
     <mask id="logoMask">
       <rect width="1024" height="1024" fill="white" />
-      <text x="512" y="612" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="'Inter', -apple-system, system-ui, sans-serif" font-weight="900" font-size="940" letter-spacing="-65">
-        <tspan dx="-40">I</tspan><tspan dx="45">O</tspan>
+      <text x="512" y="612" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="'Montserrat', sans-serif" font-weight="700" font-size="940" letter-spacing="-15">
+        <tspan dx="-25">I</tspan><tspan dx="30">O</tspan>
       </text>
     </mask>
   </defs>
@@ -743,7 +761,7 @@ const Profile: React.FC = () => {
                             };
                             img.src = url;
                           }}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-fuchsia-500/20 bg-fuchsia-500/10 py-3 text-[9px] font-black uppercase tracking-widest text-fuchsia-300 transition-all hover:bg-fuchsia-500/20 active:scale-95"
+                          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-fuchsia-500/20 bg-fuchsia-500/10 py-3 text-[9px] font-black font-montserrat uppercase tracking-widest text-fuchsia-300 transition-all hover:bg-fuchsia-500/20 active:scale-95"
                         >
                           <Download className="h-3.5 w-3.5" />
                           Download PNG Icon
@@ -770,15 +788,6 @@ const Profile: React.FC = () => {
           Build Version: {appInfo.version}
         </p>
         
-        {/* Brand Attribution - Moved below build version and made lighter */}
-        <div className="flex justify-center opacity-10 grayscale pointer-events-none mt-1">
-          <img 
-            src="/Bslogo.png" 
-            alt="Brand Logo" 
-            className="h-5 w-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
-        </div>
       </div>
 
       {/* Edit Profile Modal */}
@@ -799,7 +808,7 @@ const Profile: React.FC = () => {
               className="relative w-full max-w-sm rounded-[32px] bg-white p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-black text-slate-900">
+                <h3 className="text-lg font-black font-montserrat text-slate-900">
                   Edit Identity
                 </h3>
                 <button
@@ -812,7 +821,7 @@ const Profile: React.FC = () => {
 
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                  <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-500 ml-1">
                     Display Name
                   </label>
                   <div className="relative">
@@ -828,7 +837,7 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                  <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-500 ml-1">
                     Phone Number
                   </label>
                   <div className="relative">
@@ -844,7 +853,7 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                  <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-500 ml-1">
                     Address
                   </label>
                   <div className="relative">
@@ -863,7 +872,7 @@ const Profile: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-slate-900/10 transition-all active:scale-95 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-4 text-[10px] font-black font-montserrat uppercase tracking-widest text-white shadow-lg shadow-slate-900/10 transition-all active:scale-95 disabled:opacity-50"
                   >
                     {isUpdating ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
@@ -899,7 +908,7 @@ const Profile: React.FC = () => {
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[20px] bg-red-50 text-red-500">
                 <AlertTriangle className="h-7 w-7" />
               </div>
-              <h3 className="mt-5 text-xl font-black text-slate-900">
+              <h3 className="mt-5 text-xl font-black font-montserrat text-slate-900">
                 Total Data Wipe
               </h3>
               <p className="mt-2 text-xs font-medium text-slate-500 leading-relaxed px-4">
@@ -911,7 +920,7 @@ const Profile: React.FC = () => {
                 <button
                   onClick={handleDeleteDevices}
                   disabled={isDeleting}
-                  className="flex w-full items-center justify-center gap-2 rounded-[16px] bg-red-500 py-3.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-[16px] bg-red-500 py-3.5 text-[9px] font-black font-montserrat uppercase tracking-widest text-white shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50"
                 >
                   {isDeleting ? (
                     <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -921,7 +930,7 @@ const Profile: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setShowConfirmDelete(false)}
-                  className="py-2 text-[9px] font-black uppercase tracking-widest text-slate-400"
+                  className="py-2 text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400"
                 >
                   Cancel
                 </button>

@@ -66,10 +66,10 @@ const Alerts: React.FC = () => {
 
         <header className="relative z-40 px-1 pb-4">
           <div className="text-center">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+            <h1 className="text-2xl font-black font-montserrat tracking-tight text-slate-900 leading-none">
               Device Alerts
             </h1>
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <p className="mt-2 text-[10px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-400">
               Critical Connectivity Status
             </p>
           </div>
@@ -110,7 +110,7 @@ const Alerts: React.FC = () => {
                   <div className="absolute inset-0 flex items-center justify-start rounded-[24px] bg-red-500 px-6">
                     <div className="flex flex-col items-center gap-1 text-white">
                       <Trash2 className="h-5 w-5" />
-                      <span className="text-[8px] font-black uppercase tracking-tighter">
+                      <span className="text-[8px] font-black font-montserrat uppercase tracking-tighter">
                         Dismiss
                       </span>
                     </div>
@@ -168,10 +168,10 @@ const Alerts: React.FC = () => {
 
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-black tracking-tight text-slate-900 line-clamp-1 break-all w-[180px]">
+                          <h4 className="text-sm font-black font-montserrat tracking-tight text-slate-900 line-clamp-1 break-all w-[180px]">
                             {alert.deviceDescription || alert.deviceName}
                           </h4>
-                          <span className="text-[8px] font-black uppercase text-slate-400">
+                          <span className="text-[8px] font-black font-montserrat uppercase text-slate-400">
                             {alert.type === "expired"
                               ? "CRITICAL"
                               : alert.type === "inactive"
@@ -231,7 +231,7 @@ const Alerts: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5 mt-4">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+                  <h3 className="text-sm font-black font-montserrat uppercase tracking-widest text-slate-900">
                     All Clear
                   </h3>
                   <p className="text-[10px] text-slate-500 font-bold max-w-[220px] leading-relaxed mx-auto">
@@ -242,7 +242,7 @@ const Alerts: React.FC = () => {
 
                 <button
                   onClick={handleRescan}
-                  className="group flex items-center gap-3 rounded-[20px] bg-slate-900 px-7 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-white shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 active:scale-95 mt-6"
+                  className="group flex items-center gap-3 rounded-[20px] bg-slate-900 px-7 py-3.5 text-[10px] font-black font-montserrat uppercase tracking-[0.15em] text-white shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 active:scale-95 mt-6"
                 >
                   <RefreshCcw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                   Check for Alerts
@@ -262,7 +262,7 @@ const Alerts: React.FC = () => {
             >
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] leading-none text-emerald-400">
+                <h3 className="text-[10px] font-black font-montserrat uppercase tracking-[0.15em] leading-none text-emerald-400">
                   Protocol Suggestion
                 </h3>
               </div>
@@ -273,7 +273,7 @@ const Alerts: React.FC = () => {
               <div className="flex flex-col gap-2.5">
                 <button
                   onClick={() => navigate("/devices")}
-                  className="w-full rounded-2xl bg-white/10 py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-all active:scale-[0.98]"
+                  className="w-full rounded-2xl bg-white/10 py-3 text-[10px] font-black font-montserrat uppercase tracking-widest text-white hover:bg-white/20 transition-all active:scale-[0.98]"
                 >
                   Manage Devices
                 </button>
@@ -281,7 +281,7 @@ const Alerts: React.FC = () => {
                 <button
                   onClick={loadAlerts}
                   className={cn(
-                    "flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 py-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/20 transition-all active:scale-[0.98]",
+                    "flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 py-3 text-[10px] font-black font-montserrat uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/20 transition-all active:scale-[0.98]",
                     loading && "opacity-50 pointer-events-none",
                   )}
                 >
@@ -293,7 +293,7 @@ const Alerts: React.FC = () => {
 
                 <button
                   onClick={handleDismissAll}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-[0.98]"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[10px] font-black font-montserrat uppercase tracking-widest text-red-500 hover:bg-red-500/20 transition-all active:scale-[0.98]"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Dismiss All Signals

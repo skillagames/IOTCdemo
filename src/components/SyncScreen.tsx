@@ -16,17 +16,16 @@ export const SyncScreen = () => {
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-          className="relative flex h-14 w-14 items-center justify-center bg-black rounded-full shadow-2xl shadow-slate-900/40"
+          className="relative flex h-14 w-14 items-center justify-center bg-black rounded-full shadow-lg"
         >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-          <span className="font-black text-xl text-white tracking-tight">
+          <span className="font-montserrat font-bold text-2xl text-white">
             IO
           </span>
         </motion.div>
       </div>
 
       <div className="flex flex-col items-center">
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">
+        <span className="text-[10px] font-black font-montserrat uppercase tracking-[0.3em] text-slate-900">
           Synchronizing
         </span>
         <div className="mt-2 flex gap-1">

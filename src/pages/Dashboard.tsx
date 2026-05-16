@@ -13,10 +13,12 @@ import {
   ShieldCheck,
   Cpu,
   LayoutGrid,
+  MapPin,
   Workflow,
   LogOut,
   User,
   Settings,
+  Database,
 } from "lucide-react";
 import { deviceService, Device } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
@@ -122,6 +124,11 @@ const Dashboard: React.FC = () => {
           }
         }
 
+        // Safety: Never hide if we are at the very top of the page
+        if (window.scrollY < 10) {
+          shouldHide = false;
+        }
+
         setIsStickyHidden(shouldHide);
       } else {
         setIsStickyHidden(false);
@@ -129,8 +136,11 @@ const Dashboard: React.FC = () => {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    // Initialize state immediately
+    handleScroll();
+    
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [profile?.showInsights]);
+  }, [profile?.showInsights, devices.length, loading]);
 
   const loadDevices = async () => {
     try {
@@ -151,10 +161,58 @@ const Dashboard: React.FC = () => {
     );
 
   const firstName = profile?.displayName?.split(" ")[0] || "Member";
+  const activeCount = devices.filter((d) => d.subscriptionStatus === "active").length;
+  const totalCount = devices.length || 1;
+  const healthEfficiency = Math.round((activeCount / totalCount) * 100);
 
-  const filteredDevices = filter
+  // Calculated metrics for insights (shifting to realistic IoT throughput)
+  const throughputValue = activeCount > 0 ? (activeCount * 12 + Math.floor(Math.random() * 20)).toString() : "0";
+  const latencyValue = activeCount > 0 ? (85 + Math.floor(Math.random() * 45)).toString() : "--";
+
+  // Dynamic Logistics Items
+  const logisticsLogs = [
+    // 1. Critical Alert (Expired)
+    ...(devices.find(d => d.subscriptionStatus === "expired") ? [{
+      icon: AlertCircle,
+      title: "Service Dropout",
+      desc: `${devices.find(d => d.subscriptionStatus === "expired")?.description || "Device"} plan expired`,
+      time: "Now",
+      color: "red" as const
+    }] : []),
+    // 2. Warning (Low Data)
+    ...(activeCount > 0 && devices.find(d => d.subscriptionStatus === "active" && (d.remainingDataMb / (d.totalDataMb || 360)) < 0.2) ? [{
+      icon: Activity,
+      title: "Capacity Warning",
+      desc: `${devices.find(d => d.subscriptionStatus === "active" && (d.remainingDataMb / (d.totalDataMb || 360)) < 0.2)?.description || "Device"} low on data`,
+      time: "12m ago",
+      color: "red" as const
+    }] : []),
+    // 3. Status (Active Pulse)
+    ...(activeCount > 0 ? [{
+      icon: Zap,
+      title: "Telemetry Sync",
+      desc: `${activeCount} nodes relaying signals`,
+      time: "2m ago",
+      color: "blue" as const
+    }] : []),
+    // 4. Default / Standby
+    {
+      icon: ShieldCheck,
+      title: "System Secure",
+      desc: "Continuous monitoring active",
+      time: "Online",
+      color: "emerald" as const
+    }
+  ].slice(0, 3);
+
+  const filteredDevices = (filter
     ? devices.filter((d) => d.subscriptionStatus === filter)
-    : devices;
+    : devices
+  ).sort((a, b) => {
+    const timeA = a.createdAt?.toDate?.()?.getTime() || a.createdAt?.getTime?.() || 0;
+    const timeB = b.createdAt?.toDate?.()?.getTime() || b.createdAt?.getTime?.() || 0;
+    return timeB - timeA;
+  });
 
   return (
     <div className="pb-0 min-h-screen">
@@ -304,7 +362,7 @@ const Dashboard: React.FC = () => {
                   Network: Online
                 </span>
               </div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 leading-none">
+              <h1 className="text-2xl font-black font-montserrat tracking-tighter text-slate-900 leading-none">
                 Hello, <span className="text-slate-500">{firstName}</span>
               </h1>
               <p className="text-[10px] font-medium text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis">
@@ -323,7 +381,7 @@ const Dashboard: React.FC = () => {
                 className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100 shadow-sm"
               >
                 <PlusCircle className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                <span className="text-[10px] font-black font-montserrat uppercase tracking-widest whitespace-nowrap">
                   Add Device
                 </span>
               </button>
@@ -332,7 +390,7 @@ const Dashboard: React.FC = () => {
                 className="flex-1 group flex items-center justify-center gap-2.5 rounded-2xl border border-sky-100 bg-sky-50 px-3 md:px-6 py-3 text-sky-900 transition-all active:scale-95 hover:bg-sky-100 shadow-sm"
               >
                 <Network className="h-4 w-4 shrink-0 text-sky-600 transition-colors" />
-                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                <span className="text-[10px] font-black font-montserrat uppercase tracking-widest whitespace-nowrap">
                   All devices
                 </span>
               </button>
@@ -341,7 +399,7 @@ const Dashboard: React.FC = () => {
 
           <div className="mt-1.5 flex items-center justify-around gap-5 border-t border-slate-50 pt-3.5">
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
                 Active Pool
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
@@ -353,20 +411,20 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="h-3 w-px bg-slate-100" />
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
                 Network Health
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
-                92.4%
+                {healthEfficiency}%
               </span>
             </div>
             <div className="h-3 w-px bg-slate-100" />
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
                 Logistics
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
-                Optimized
+                {activeCount > 0 ? "Operational" : "Standby"}
               </span>
             </div>
           </div>
@@ -430,7 +488,7 @@ const Dashboard: React.FC = () => {
 
         <div className="flex items-center justify-between h-8 mt-2 pb-1 transition-all duration-300">
           <div className="flex items-center gap-2">
-            <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <h2 className="text-[9px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-500">
               Quick Inventory
             </h2>
             <div className="flex items-center h-6 min-w-[70px]">
@@ -443,7 +501,7 @@ const Dashboard: React.FC = () => {
                     exit={{ opacity: 0, scale: 0.9, x: -5 }}
                     onClick={() => handleFilterChange(null)}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
+                      "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[8px] font-black font-montserrat uppercase tracking-widest border transition-all active:scale-95 shadow-sm",
                       filter === "active" &&
                         "bg-emerald-50 text-emerald-600 border-emerald-100",
                       filter === "expired" &&
@@ -459,7 +517,7 @@ const Dashboard: React.FC = () => {
               </AnimatePresence>
             </div>
           </div>
-          <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tight">
+          <span className="text-[9px] font-bold text-slate-400 tabular-nums tracking-tight">
             {filteredDevices.length} DEVICE(S)
           </span>
         </div>
@@ -543,7 +601,7 @@ const Dashboard: React.FC = () => {
       {profile?.showInsights !== false && (
         <section ref={insightsRef} className="space-y-4 pt-2 mt-10">
           <div className="flex items-center justify-between pb-2">
-            <h2 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <h2 className="text-[9px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-500">
               Network Insights
             </h2>
             <div className="flex h-1 w-12 rounded-full bg-slate-100 overflow-hidden">
@@ -596,7 +654,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between mb-5 relative z-10">
                 <div className="flex items-center gap-2">
                   <Workflow className="h-4 w-4 text-blue-500" />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                  <h4 className="text-[10px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-500">
                     Operational Status & Logistics
                   </h4>
                 </div>
@@ -616,12 +674,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col h-full">
                   <div className="space-y-1 mb-4">
                     <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                      Network optimized at 92.4% efficiency.{" "}
-                      {
-                        devices.filter((d) => d.subscriptionStatus === "active")
-                          .length
-                      }{" "}
-                      active devices running within parameters.
+                      Network optimized at {healthEfficiency}% efficiency.{" "}
+                      {activeCount} active devices running within clusters.
                     </p>
                   </div>
 
@@ -654,11 +708,7 @@ const Dashboard: React.FC = () => {
                           animate={{
                             strokeDashoffset:
                               163.36 -
-                              163.36 *
-                                (devices.filter(
-                                  (d) => d.subscriptionStatus === "active",
-                                ).length /
-                                  (devices.length || 1)),
+                              163.36 * (healthEfficiency / 100),
                           }}
                           transition={{ duration: 1.5, ease: "easeOut" }}
                           cx="30"
@@ -673,62 +723,45 @@ const Dashboard: React.FC = () => {
                       </svg>
                       <div className="absolute flex flex-col items-center leading-none">
                         <span className="text-[11px] font-black text-slate-900">
-                          {Math.round(
-                            (devices.filter(
-                              (d) => d.subscriptionStatus === "active",
-                            ).length /
-                              (devices.length || 1)) *
-                              100,
-                          )}
+                          {healthEfficiency}
                           <span className="text-[8px]">%</span>
                         </span>
                       </div>
                     </div>
-
+ 
                     <div className="flex flex-col gap-2 w-full">
                       <div className="flex items-center justify-between rounded-xl bg-slate-50/80 border border-slate-200 px-3 py-2">
                         <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">
                           Throughput
                         </span>
-                        <span className="text-[10px] font-black text-slate-900 font-mono">
-                          2.4 <span className="text-[7px] font-sans">GB/S</span>
+                        <span className="text-[10px] font-black text-slate-900 tabular-nums">
+                          {throughputValue} <span className="text-[7px] font-sans">KB/S</span>
                         </span>
                       </div>
                       <div className="flex items-center justify-between rounded-xl bg-slate-50/80 border border-slate-200 px-3 py-2">
                         <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">
                           Latency
                         </span>
-                        <span className="text-[10px] font-black text-slate-900 font-mono">
-                          12 <span className="text-[7px] font-sans">MS</span>
+                        <span className="text-[10px] font-black text-slate-900 tabular-nums">
+                          {latencyValue} <span className="text-[7px] font-sans">MS</span>
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-
+ 
                 {/* Logistics Timeline (Right) */}
                 <div className="relative space-y-3.5 before:absolute before:inset-y-2 before:left-[15.5px] before:w-px before:bg-slate-100">
-                  <LogItem
-                    icon={Zap}
-                    title="Telemetry Pulse"
-                    desc={`${devices[0]?.name || "Gateway"} transmitted metrics`}
-                    time="2m ago"
-                    color="blue"
-                  />
-                  <LogItem
-                    icon={ShieldCheck}
-                    title="Service Renewal"
-                    desc={`${devices[1]?.name || "Monitor"} renewed`}
-                    time="1h ago"
-                    color="emerald"
-                  />
-                  <LogItem
-                    icon={AlertCircle}
-                    title="Low Signal"
-                    desc={`${devices[2]?.name || "Hub"} latency warning`}
-                    time="3h ago"
-                    color="red"
-                  />
+                  {logisticsLogs.map((log, idx) => (
+                    <LogItem
+                      key={idx}
+                      icon={log.icon}
+                      title={log.title}
+                      desc={log.desc}
+                      time={log.time}
+                      color={log.color}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -739,7 +772,7 @@ const Dashboard: React.FC = () => {
       {/* Brand Partner Logo */}
       <section className="flex flex-col items-center justify-center pt-2 pb-12 mt-14">
         <div className="flex flex-col items-center gap-2.5">
-          <p className="text-[7px] font-black uppercase tracking-[0.5em] text-slate-400">
+          <p className="text-[7px] font-black font-montserrat uppercase tracking-[0.5em] text-slate-400">
             Hardware Partner
           </p>
           <img
@@ -765,6 +798,7 @@ const LogItem = ({
   desc: string;
   time: string;
   color: "blue" | "emerald" | "red";
+  key?: any;
 }) => (
   <div className="group relative flex items-center gap-4">
     <div
@@ -778,12 +812,12 @@ const LogItem = ({
       <Icon className="h-4 w-4" />
     </div>
     <div className="flex-1 min-w-0">
-      <h5 className="text-xs font-bold text-slate-900 leading-tight truncate">
+      <h5 className="text-xs font-bold font-montserrat text-slate-900 leading-tight truncate">
         {title}
       </h5>
       <p className="text-[10px] text-slate-500 leading-tight truncate">{desc}</p>
     </div>
-    <span className="shrink-0 text-[9px] font-bold text-slate-400 font-mono bg-white/50 px-1.5 py-0.5 rounded shadow-sm">
+    <span className="shrink-0 text-[9px] font-bold text-slate-400 tabular-nums bg-white/50 px-1.5 py-0.5 rounded shadow-sm">
       {time}
     </span>
   </div>
@@ -796,14 +830,33 @@ const DeviceCard = ({
   device: Device;
   onClick: () => void;
 }) => {
-  const isExpired = device.subscriptionStatus === "expired";
+  const isStatusExpired = device.subscriptionStatus === "expired";
   const isInactive = device.subscriptionStatus === "inactive";
+  
+  const expirationDate = device.expirationDate?.toDate 
+    ? device.expirationDate.toDate() 
+    : (device.expirationDate instanceof Date 
+        ? device.expirationDate 
+        : (device.expirationDate?.seconds 
+            ? new Date(device.expirationDate.seconds * 1000) 
+            : new Date(device.expirationDate)));
+            
+  const isPlanExpired = isStatusExpired && expirationDate && expirationDate < new Date();
+  const isDataExpired = isStatusExpired && (device.remainingDataMb || 0) <= 0;
+  // Fallback if status is expired but neither condition is strictly met in UI logic
+  const isExpired = isStatusExpired;
+
+  // Check if "New" (added in last 48 hours)
+  const createdAtDate = device.createdAt?.toDate?.() || 
+                       (device.createdAt instanceof Date ? device.createdAt : 
+                       (device.createdAt?.seconds ? new Date(device.createdAt.seconds * 1000) : null));
+  const isNew = createdAtDate && (new Date().getTime() - createdAtDate.getTime()) < 48 * 60 * 60 * 1000;
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "group relative flex w-full items-center gap-4 overflow-hidden rounded-[24px] bg-white p-1.5 pr-5 border transition-all active:scale-[0.98] shadow-sm",
+        "group relative flex w-full items-center gap-4 rounded-[24px] bg-white p-1.5 pr-5 border transition-all active:scale-[0.98] shadow-sm",
         isExpired
           ? "border-red-100/50 active:border-red-500 md:hover:border-red-500"
           : isInactive
@@ -811,6 +864,18 @@ const DeviceCard = ({
             : "border-slate-100 active:border-emerald-500 md:hover:border-emerald-500",
       )}
     >
+      {/* NEW Badge */}
+      {isNew && (
+        <div className="absolute -top-1.5 right-4 z-20">
+          <div className="flex items-center gap-1 rounded-full bg-slate-900 px-2 py-0.5 shadow-md shadow-slate-200 ring-1 ring-white/20">
+            <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[7px] font-black font-montserrat uppercase tracking-[0.05em] text-white">
+              New
+            </span>
+          </div>
+        </div>
+      )}
+
       <div
         className={cn(
           "flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] transition-colors",
@@ -831,15 +896,19 @@ const DeviceCard = ({
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="text-[14px] font-black tracking-tight text-slate-900 line-clamp-1">
+        <h4 className="text-[14px] font-black font-montserrat tracking-tight text-slate-900 line-clamp-1">
           {device.description || device.name}
         </h4>
-        {device.description && (
-          <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-tight text-slate-500">
-            {device.name}
-          </p>
-        )}
-        <div className="mt-1 flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-tight text-slate-400">
+        <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-tight text-slate-500 flex items-center gap-1">
+          <MapPin className="h-2.5 w-2.5 text-slate-400" />
+          {device.location || "Location Not Set"}
+        </p>
+        <div
+          className={cn(
+            "mt-1 flex items-center tabular-nums text-[10px] font-bold uppercase tracking-tight text-slate-400",
+            !isExpired && !isInactive ? "justify-between" : "gap-1.5",
+          )}
+        >
           <span
             className={cn(
               isExpired
@@ -849,8 +918,19 @@ const DeviceCard = ({
                   : "text-emerald-500",
             )}
           >
-            {isExpired ? "Expired" : isInactive ? "Inactive" : "Active"}
+            {isPlanExpired ? "Plan Expired" : isDataExpired ? "Data Expired" : isExpired ? "Expired" : isInactive ? "Inactive" : "Active"}
           </span>
+          {!isExpired && !isInactive && (
+            <>
+              <div className="flex items-center gap-1 rounded-md bg-slate-100/80 px-1.5 py-0.5 text-slate-700 ring-1 ring-slate-200/50">
+                <Database className="h-2.5 w-2.5 text-slate-500" />
+                <span className="font-black">{device.remainingDataMb?.toFixed(0)} MB</span>
+              </div>
+              <span className="text-slate-400 text-right">
+                EXP {formatDate(device.expirationDate, "dd/MM/yy")}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -906,7 +986,7 @@ const StatCard = ({
     </div>
     <p
       className={cn(
-        "text-[7px] font-black uppercase tracking-[0.2em]",
+        "text-[7px] font-black font-montserrat uppercase tracking-[0.2em]",
         isActive
           ? color === "emerald"
             ? "text-emerald-600/60"

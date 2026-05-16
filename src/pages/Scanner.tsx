@@ -2,14 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useNavigate } from "react-router-dom";
 import {
-  Scan,
   AlertCircle,
-  CheckCircle2,
   Keyboard,
   Camera,
   ArrowRight,
   X,
   QrCode,
+  Image as ImageIcon,
 } from "lucide-react";
 import { DeviceIcon } from "../components/DeviceIcon";
 import { deviceService } from "../services/deviceService";
@@ -26,13 +25,12 @@ const Scanner: React.FC = () => {
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [permissionState, setPermissionState] = useState<
-    PermissionState | "unknown"
-  >("unknown");
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isTransitioningRef = useRef(false);
   const stopRequestedRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -43,10 +41,9 @@ const Scanner: React.FC = () => {
       const result = await navigator.permissions.query({
         name: "camera" as PermissionName,
       });
-      setPermissionState(result.state);
 
       result.onchange = () => {
-        setPermissionState(result.state);
+        // Just trigger a re-check if needed, but the state is sufficient
       };
 
       return result.state;
@@ -60,11 +57,9 @@ const Scanner: React.FC = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach((track) => track.stop()); // Stop immediately
-      setPermissionState("granted");
       return true;
     } catch (err) {
       console.error("Permission request denied", err);
-      setPermissionState("denied");
       return false;
     }
   };
@@ -242,6 +237,7 @@ const Scanner: React.FC = () => {
         materialCode: hardwareData.materialCode || "",
         barcode: hardwareData.barcode || "",
         description: hardwareData.description || "",
+        location: hardwareData.location || "",
       });
     } catch (err) {
       console.error("Verification error", err);
@@ -256,6 +252,71 @@ const Scanner: React.FC = () => {
     await handleDetected(manualCode.trim());
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingImage(true);
+    setError(null);
+    setScanResult(null);
+
+    // Ensure we are on the scan tab so the scanner DOM element is definitely present
+    if (activeTab !== "scan") {
+      setActiveTab("scan");
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+
+    // Stop camera if active
+    if (cameraActive) {
+      await stopScanner();
+    }
+
+    try {
+      // 1. Try modern BarcodeDetector API (more robust on images)
+      if ("BarcodeDetector" in window) {
+        try {
+          const supportedFormats = await (window as any).BarcodeDetector.getSupportedFormats();
+          const detector = new (window as any).BarcodeDetector({ 
+            formats: supportedFormats && supportedFormats.length > 0 
+              ? supportedFormats 
+              : ["qr_code", "code_128", "ean_13", "data_matrix"] 
+          });
+          const bitmap = await createImageBitmap(file);
+          const barcodes = await detector.detect(bitmap);
+          if (barcodes.length > 0) {
+            await handleDetected(barcodes[0].rawValue);
+            return;
+          }
+        } catch (detectorErr) {
+          console.warn("BarcodeDetector detection failed, falling back", detectorErr);
+        }
+      }
+
+      // 2. Fallback to html5-qrcode
+      if (!html5QrCodeRef.current) {
+        html5QrCodeRef.current = new Html5Qrcode(scannerId);
+      }
+
+      // UI Feedback delay to give a "pro feeling" of processing
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const decodedText = await html5QrCodeRef.current.scanFile(file, false);
+      await handleDetected(decodedText);
+    } catch (err: any) {
+      console.error("Image scan failed", err);
+      const errMsg = (err?.toString() || "").toLowerCase();
+      
+      if (errMsg.includes("no multiformat readers") || errMsg.includes("not found") || errMsg.includes("no barcode")) {
+        setError("Could not identify a clear code in this image. Ensure the barcode is well-lit and not blurry.");
+      } else {
+        setError("Scanning Protocol Fail: Could not process this image format. Use manual entry.");
+      }
+    } finally {
+      setIsProcessingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleRegister = async () => {
     if (!user || !deviceInfo) return;
     setRegistering(true);
@@ -268,8 +329,8 @@ const Scanner: React.FC = () => {
         materialCode: deviceInfo.materialCode,
         barcode: deviceInfo.barcode,
         description: deviceInfo.description,
+        location: deviceInfo.location,
         ownerId: user.uid,
-        planId: "default-plan",
       });
       navigate(`/devices/${deviceId}`);
     } catch (err: any) {
@@ -280,20 +341,36 @@ const Scanner: React.FC = () => {
   };
 
   return (
-    <div className="-mt-4 flex flex-col h-[calc(100dvh-150px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] overscroll-y-none overflow-hidden touch-none select-none">
-      <div className="z-40 sticky top-0 -mx-4 px-4 pt-6 pb-2 bg-bg-main shrink-0 touch-none">
+    <div className="-mt-4 flex flex-col h-[calc(100dvh-150px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] overscroll-y-none overflow-hidden select-none">
+      <div className="z-40 sticky top-0 -mx-4 px-4 pt-6 pb-2 bg-bg-main shrink-0">
         {/* Background Decor Icon - Positioned absolute to the container to avoid clipping */}
         <QrCode className="absolute -top-4 -right-4 h-32 w-32 text-slate-900/[0.03] -rotate-12 pointer-events-none z-10" />
 
         <header className="relative z-20 px-1">
           <div className="text-center relative z-10">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
+            <h1 className="text-2xl font-black font-montserrat tracking-tight text-slate-900 leading-none">
               Add Device
             </h1>
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <p className="mt-2 text-[10px] font-black font-montserrat uppercase tracking-[0.2em] text-slate-400">
               Hardware Integration
             </p>
           </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute right-1 top-0 z-30 flex h-10 w-10 items-center justify-center rounded-[18px] bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all active:scale-90 cursor-pointer"
+            title="Upload from Image"
+          >
+            <ImageIcon className="h-5 w-5" />
+          </button>
 
           {/* Tab Switcher */}
           <div className="flex gap-2 justify-center max-w-[320px] mx-auto mt-4">
@@ -304,7 +381,7 @@ const Scanner: React.FC = () => {
                 setError(null);
               }}
               className={cn(
-                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black font-montserrat uppercase tracking-widest transition-all",
                 activeTab === "scan"
                   ? "text-sky-900"
                   : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
@@ -336,7 +413,7 @@ const Scanner: React.FC = () => {
                 setError(null);
               }}
               className={cn(
-                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                "relative group flex flex-1 items-center justify-center gap-2 rounded-[16px] py-2.5 px-3 text-[10px] font-black font-montserrat uppercase tracking-widest transition-all",
                 activeTab === "manual"
                   ? "text-sky-900"
                   : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
@@ -365,7 +442,7 @@ const Scanner: React.FC = () => {
         </header>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center -mt-8">
+      <div className="flex-1 flex flex-col items-center justify-center -mt-4">
         <div className="w-full max-w-[340px] px-6">
           <AnimatePresence mode="wait">
             {scanResult ? (
@@ -374,7 +451,7 @@ const Scanner: React.FC = () => {
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                className="w-full relative min-h-[420px]"
+                className="w-full relative min-h-[380px]"
               >
                 <div className="h-full w-full rounded-[40px] border-2 border-slate-100 bg-white p-5 flex flex-col shadow-2xl shadow-slate-200/50">
                   <div className="flex items-start justify-between">
@@ -387,10 +464,10 @@ const Scanner: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-0.5">
-                        <h4 className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none">
+                        <h4 className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 leading-none">
                           Device Identified
                         </h4>
-                        <p className="text-[12px] font-black tracking-tight text-slate-900 font-mono leading-none pt-1">
+                        <p className="text-[12px] font-black tracking-tight text-slate-900 tabular-nums leading-none pt-1">
                           SN: {deviceInfo?.serialNumber}
                         </p>
                         <div className="h-1 w-6 bg-slate-300 rounded-full mt-1.5" />
@@ -406,9 +483,9 @@ const Scanner: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="py-2.5 space-y-2">
+                  <div className="py-1 space-y-1.5">
                     <div className="space-y-0.5">
-                      <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                      <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                         Model Number
                       </label>
                       <input
@@ -421,27 +498,45 @@ const Scanner: React.FC = () => {
                       />
                     </div>
 
-                    <div className="space-y-0.5">
-                      <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
-                        Model Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. CCTV Camera, Network Switch"
-                        value={deviceInfo?.description || ""}
-                        onChange={(e) =>
-                          setDeviceInfo({
-                            ...deviceInfo,
-                            description: e.target.value,
-                          })
-                        }
-                        className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
-                      />
-                    </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
+                          Model Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. CCTV Camera, Network Switch"
+                          value={deviceInfo?.description || ""}
+                          onChange={(e) =>
+                            setDeviceInfo({
+                              ...deviceInfo,
+                              description: e.target.value,
+                            })
+                          }
+                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Server Room A, Gate 4"
+                          value={deviceInfo?.location || ""}
+                          onChange={(e) =>
+                            setDeviceInfo({
+                              ...deviceInfo,
+                              location: e.target.value,
+                            })
+                          }
+                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                        />
+                      </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-0.5">
-                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                           IMEI
                         </label>
                         <input
@@ -464,7 +559,7 @@ const Scanner: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-0.5">
-                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                           ICCID
                         </label>
                         <input
@@ -490,7 +585,7 @@ const Scanner: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-0.5">
-                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                           Mat. Code
                         </label>
                         <input
@@ -513,7 +608,7 @@ const Scanner: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-0.5">
-                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">
+                        <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                           Barcode
                         </label>
                         <input
@@ -542,7 +637,7 @@ const Scanner: React.FC = () => {
                     <button
                       onClick={handleRegister}
                       disabled={registering}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-emerald-50 border-2 border-emerald-100 text-[10px] font-black uppercase tracking-[0.15em] text-emerald-600 transition-all active:scale-95 disabled:opacity-50"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] bg-emerald-50 border-2 border-emerald-100 text-[10px] font-black font-montserrat uppercase tracking-[0.15em] text-emerald-600 transition-all active:scale-95 disabled:opacity-50"
                     >
                       {registering ? (
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
@@ -572,16 +667,32 @@ const Scanner: React.FC = () => {
                     )}
                   />
 
-                  {!cameraActive && !error && (
+                  {isProcessingImage && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-30 p-7 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-sky-50 text-sky-600 mb-4 shrink-0 animate-pulse">
+                        <ImageIcon className="h-6 w-6" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <h3 className="text-lg font-black font-montserrat tracking-tight text-slate-900 leading-none">
+                          Processing Image
+                        </h3>
+                        <p className="text-[9px] font-black font-montserrat text-sky-600 uppercase tracking-widest mt-1.5">
+                          Decoding hardware identifiers...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!cameraActive && !error && !isProcessingImage && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-7 text-center">
                       <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-slate-50 text-slate-900 mb-4 shrink-0 animate-in fade-in zoom-in duration-300">
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
                       </div>
                       <div className="space-y-0.5">
-                        <h3 className="text-lg font-black tracking-tight text-slate-900 leading-none">
+                        <h3 className="text-lg font-black font-montserrat tracking-tight text-slate-900 leading-none">
                           Starting Camera
                         </h3>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
+                        <p className="text-[9px] font-black font-montserrat text-slate-400 uppercase tracking-widest mt-1.5">
                           Preparing scanner environment...
                         </p>
                       </div>
@@ -594,10 +705,10 @@ const Scanner: React.FC = () => {
                         <AlertCircle className="h-6 w-6" />
                       </div>
                       <div className="space-y-0.5 mb-6">
-                        <h3 className="text-lg font-black tracking-tight text-slate-900 leading-none">
+                        <h3 className="text-lg font-black font-montserrat tracking-tight text-slate-900 leading-none">
                           Registry Error
                         </h3>
-                        <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1">
+                        <p className="text-[9px] font-black font-montserrat text-red-500 uppercase tracking-widest mt-1">
                           {error}
                         </p>
                       </div>
@@ -608,13 +719,13 @@ const Scanner: React.FC = () => {
                             setError(null);
                             // startScanner will be triggered by useEffect
                           }}
-                          className="w-full rounded-[18px] bg-slate-900 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] text-white transition-all active:scale-95 shadow-xl shadow-slate-950/10"
+                          className="w-full rounded-[18px] bg-slate-900 py-3.5 text-[10px] font-black font-montserrat uppercase tracking-[0.15em] text-white transition-all active:scale-95 shadow-xl shadow-slate-950/10"
                         >
                           Restart Scanner
                         </button>
                         <button
                           onClick={() => setActiveTab("manual")}
-                          className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+                          className="w-full text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
                         >
                           Manual Entry Protocol
                         </button>
@@ -657,10 +768,10 @@ const Scanner: React.FC = () => {
                     <Keyboard className="h-6 w-6" />
                   </div>
                   <div className="space-y-0.5 mb-6">
-                    <h3 className="text-lg font-black tracking-tight text-slate-900 leading-none">
+                    <h3 className="text-lg font-black font-montserrat tracking-tight text-slate-900 leading-none">
                       Manual Entry
                     </h3>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                    <p className="text-[9px] font-black font-montserrat text-slate-400 uppercase tracking-widest mt-1">
                       Transmit serial code
                     </p>
                   </div>
@@ -692,7 +803,7 @@ const Scanner: React.FC = () => {
                           className="flex items-center justify-center gap-2 px-2"
                         >
                           <AlertCircle className="h-3 w-3 text-red-500" />
-                          <span className="text-[10px] font-black uppercase tracking-tight text-red-500">
+                          <span className="text-[10px] font-black font-montserrat uppercase tracking-tight text-red-500">
                             Unrecognized Device ID
                           </span>
                         </motion.div>
@@ -702,7 +813,7 @@ const Scanner: React.FC = () => {
                     <button
                       type="submit"
                       disabled={!manualCode.trim()}
-                      className="flex py-3.5 w-full items-center justify-center gap-2 rounded-[18px] bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white transition-all active:scale-95 disabled:opacity-30 shadow-xl shadow-slate-950/10"
+                      className="flex py-3.5 w-full items-center justify-center gap-2 rounded-[18px] bg-slate-900 text-[10px] font-black font-montserrat uppercase tracking-[0.15em] text-white transition-all active:scale-95 disabled:opacity-30 shadow-xl shadow-slate-950/10"
                     >
                       Verify Hardware <ArrowRight className="h-4 w-4" />
                     </button>
