@@ -366,7 +366,7 @@ const Scanner: React.FC = () => {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute right-1 top-0 z-30 flex h-10 w-10 items-center justify-center rounded-[18px] bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all active:scale-90 cursor-pointer"
+            className="absolute right-1 top-0 z-30 flex h-10 w-10 items-center justify-center rounded-[18px] bg-sky-50 border border-sky-100 text-sky-600 shadow-sm hover:bg-sky-100 transition-all active:scale-90 cursor-pointer"
             title="Upload from Image"
           >
             <ImageIcon className="h-5 w-5" />

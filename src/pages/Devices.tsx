@@ -11,6 +11,7 @@ import {
   Activity,
   Server,
   Database,
+  Calendar,
 } from "lucide-react";
 import { deviceService, Device } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
@@ -282,6 +283,7 @@ const DeviceItem = ({
         >
           <span
             className={cn(
+              "flex items-center gap-1",
               isExpired
                 ? "text-red-500"
                 : isInactive
@@ -289,6 +291,8 @@ const DeviceItem = ({
                   : "text-emerald-500",
             )}
           >
+            {isPlanExpired && <Calendar className="h-2.5 w-2.5" />}
+            {isDataExpired && <Database className="h-2.5 w-2.5" />}
             {isPlanExpired ? "Plan Expired" : isDataExpired ? "Data Expired" : isExpired ? "Expired" : isInactive ? "Inactive" : "Active"}
           </span>
 
