@@ -453,7 +453,7 @@ const Scanner: React.FC = () => {
                 exit={{ opacity: 0, scale: 0.98 }}
                 className="w-full relative min-h-[380px]"
               >
-                <div className="h-full w-full rounded-[40px] border-2 border-slate-100 bg-white p-5 flex flex-col shadow-2xl shadow-slate-200/50">
+                <div className="h-full w-full rounded-[40px] border-2 border-slate-100 bg-white p-4 flex flex-col shadow-2xl shadow-slate-200/50">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-2.5">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] bg-slate-100 text-slate-400 shadow-sm">
@@ -483,7 +483,7 @@ const Scanner: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="py-1 space-y-1.5">
+                  <div className="py-0 space-y-1">
                     <div className="space-y-0.5">
                       <label className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 px-1">
                         Model Number
@@ -494,7 +494,7 @@ const Scanner: React.FC = () => {
                         onChange={(e) =>
                           setDeviceInfo({ ...deviceInfo, name: e.target.value })
                         }
-                        className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-bold text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                        className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1 px-3.5 text-xs font-bold text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                       />
                     </div>
 
@@ -512,7 +512,7 @@ const Scanner: React.FC = () => {
                               description: e.target.value,
                             })
                           }
-                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                         />
                       </div>
 
@@ -530,7 +530,7 @@ const Scanner: React.FC = () => {
                               location: e.target.value,
                             })
                           }
-                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1.5 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
+                          className="w-full rounded-[14px] bg-slate-50 border-2 border-slate-50 py-1 px-3.5 text-xs font-medium text-slate-900 focus:border-slate-900 focus:bg-white focus:outline-none transition-all"
                         />
                       </div>
 
@@ -551,7 +551,7 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[12px] border-2 py-1.5 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-1 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
@@ -574,7 +574,7 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[12px] border-2 py-1.5 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-1 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
@@ -600,7 +600,7 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[12px] border-2 py-1.5 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-1 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",
@@ -623,7 +623,7 @@ const Scanner: React.FC = () => {
                             })
                           }
                           className={cn(
-                            "w-full rounded-[12px] border-2 py-1.5 px-3 text-[10px] font-bold transition-all focus:outline-none",
+                            "w-full rounded-[12px] border-2 py-1 px-3 text-[10px] font-bold transition-all focus:outline-none",
                             isHardwareLocked
                               ? "bg-slate-100 border-slate-100 text-slate-400 cursor-not-allowed"
                               : "bg-slate-50 border-slate-50 text-slate-900 focus:border-slate-900 focus:bg-white",

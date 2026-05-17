@@ -400,7 +400,7 @@ const Dashboard: React.FC = () => {
 
           <div className="mt-1.5 flex items-center justify-around gap-5 border-t border-slate-50 pt-3.5">
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none whitespace-nowrap">
                 Active Pool
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
@@ -412,7 +412,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="h-3 w-px bg-slate-100" />
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none whitespace-nowrap">
                 Network Health
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
@@ -421,7 +421,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="h-3 w-px bg-slate-100" />
             <div className="flex flex-col items-center">
-              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-black font-montserrat text-slate-300 uppercase tracking-widest leading-none whitespace-nowrap">
                 Logistics
               </span>
               <span className="text-[11px] font-bold text-slate-900 mt-1 leading-none">
