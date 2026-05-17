@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   damping: 20,
                   delay: 0.1,
                 }}
-                className="bg-black text-white w-8 h-8 flex items-center justify-center rounded-[4px] font-montserrat font-bold text-[22px] leading-none shadow-sm"
+                className="bg-black text-white w-8 h-8 shrink-0 flex items-center justify-center rounded-[4px] font-montserrat font-bold text-[22px] leading-none shadow-sm whitespace-nowrap [text-size-adjust:none] [-webkit-text-size-adjust:none]"
               >
                 IO
               </motion.div>

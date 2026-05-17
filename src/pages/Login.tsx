@@ -133,7 +133,7 @@ const Login: React.FC = () => {
                     damping: 20,
                     delay: 0.2,
                   }}
-                  className="bg-black text-white w-14 h-14 flex items-center justify-center rounded-[8px] font-montserrat font-bold text-[42px] leading-none"
+                  className="bg-black text-white w-14 h-14 shrink-0 flex items-center justify-center rounded-[8px] font-montserrat font-bold text-[42px] leading-none whitespace-nowrap [text-size-adjust:none] [-webkit-text-size-adjust:none]"
                 >
                   IO
                 </motion.div>
