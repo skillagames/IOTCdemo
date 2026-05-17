@@ -16,9 +16,9 @@ export const SyncScreen = () => {
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-          className="relative flex h-14 w-14 shrink-0 items-center justify-center bg-black rounded-full shadow-lg"
+          className="relative flex h-14 w-14 items-center justify-center bg-black rounded-full shadow-lg"
         >
-          <span className="font-montserrat font-bold text-2xl text-white leading-none whitespace-nowrap [text-size-adjust:none] [-webkit-text-size-adjust:none]">
+          <span className="font-montserrat font-bold text-2xl text-white">
             IO
           </span>
         </motion.div>

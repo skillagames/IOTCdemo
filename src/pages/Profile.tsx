@@ -41,6 +41,12 @@ const Profile: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isDevExpanded, setIsDevExpanded] = useState(false);
+  
+  // Dummy Data Config State - allow empty strings for easier editing
+  const [activeCount, setActiveCount] = useState<number | "">(2);
+  const [expiredCount, setExpiredCount] = useState<number | "">(6);
+  const [inactiveCount, setInactiveCount] = useState<number | "">(4);
+  const [newCount, setNewCount] = useState<number | "">(1);
 
   // Edit Profile State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -104,7 +110,12 @@ const Profile: React.FC = () => {
     if (!user) return;
     setLoading(true);
     try {
-      await deviceService.seedDevices(user.uid);
+      await deviceService.seedDevices(user.uid, {
+        activeCount: Number(activeCount) || 0,
+        expiredCount: Number(expiredCount) || 0,
+        inactiveCount: Number(inactiveCount) || 0,
+        newDevicesCount: Number(newCount) || 0
+      });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -344,43 +355,105 @@ const Profile: React.FC = () => {
               className="overflow-hidden"
             >
               <div className="rounded-[28px] border border-slate-900 bg-slate-900 p-5 text-white shadow-xl shadow-slate-900/10">
+                {/* --- DUMMY DATA CONFIG SECTION --- */}
+                <div className="mb-6">
+                  <h4 className="text-[10px] font-black font-montserrat uppercase tracking-[0.1em] text-indigo-400/90 mb-2 flex items-center justify-between">
+                    <span>DUMMY DATA CONFIG</span>
+                    <Database className="h-3.5 w-3.5 text-indigo-400" />
+                  </h4>
+                  <p className="text-[8px] text-slate-400 font-medium mb-3 leading-relaxed">
+                    Configure the distribution of synthetic device manifests for lab testing. 
+                    Expired devices split 50/50 between <strong>Data Expired</strong> and <strong>Plan Expired</strong>.
+                  </p>
+
+                  <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-[16px] space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[7px] font-black uppercase tracking-widest text-indigo-400/60 ml-1">
+                          Active Count
+                        </label>
+                        <input
+                          type="number"
+                          value={activeCount}
+                          onChange={(e) => setActiveCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                          className="w-full bg-slate-950/50 font-bold text-[10px] text-white px-3 py-2 rounded-lg border border-white/5 outline-none focus:border-indigo-500/50 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[7px] font-black uppercase tracking-widest text-indigo-400/60 ml-1">
+                          Expired Count
+                        </label>
+                        <input
+                          type="number"
+                          value={expiredCount}
+                          onChange={(e) => setExpiredCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                          className="w-full bg-slate-950/50 font-bold text-[10px] text-white px-3 py-2 rounded-lg border border-white/5 outline-none focus:border-indigo-500/50 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[7px] font-black uppercase tracking-widest text-indigo-400/60 ml-1">
+                          Inactive Count
+                        </label>
+                        <input
+                          type="number"
+                          value={inactiveCount}
+                          onChange={(e) => setInactiveCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                          className="w-full bg-slate-950/50 font-bold text-[10px] text-white px-3 py-2 rounded-lg border border-white/5 outline-none focus:border-indigo-500/50 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[7px] font-black uppercase tracking-widest text-indigo-400/60 ml-1">
+                          New Devices
+                        </label>
+                        <input
+                          type="number"
+                          value={newCount}
+                          onChange={(e) => setNewCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                          className="w-full bg-slate-950/50 font-bold text-[10px] text-white px-3 py-2 rounded-lg border border-white/5 outline-none focus:border-indigo-500/50 transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                      <button
+                        onClick={handleSeedData}
+                        disabled={loading || isDeleting}
+                        className="w-full relative flex items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-[9px] font-black font-montserrat uppercase tracking-widest text-indigo-950 transition-all hover:bg-indigo-400 active:scale-95 disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                        ) : success ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <Database className="h-3 w-3" />
+                        )}
+                        <span>{loading ? "Syncing..." : success ? "Synced" : "Seed Lab Data"}</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowConfirmDelete(true)}
+                        disabled={loading || isDeleting}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-3 text-[9px] font-black font-montserrat uppercase tracking-widest text-red-400 hover:bg-red-500/20 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Clear Device Pool</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-bold font-montserrat text-emerald-400">
                     Simulation Mode
                   </h4>
                   <p className="text-[9px] font-medium text-slate-400">
-                    Inject synthetic device manifests into the production
-                    database.
+                    Additional operational controls.
                   </p>
                 </div>
 
                 <button
-                  onClick={handleSeedData}
-                  disabled={loading || isDeleting}
-                  className="relative mt-4 flex w-full items-center justify-between overflow-hidden rounded-[16px] bg-white/10 px-4 py-3.5 transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
-                >
-                  <div className="flex items-center gap-3">
-                    {loading ? (
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-400" />
-                    ) : success ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                    ) : (
-                      <Database className="h-3.5 w-3.5 text-white" />
-                    )}
-                    <span className="text-[10px] font-black font-montserrat uppercase tracking-widest text-left">
-                      {loading
-                        ? "Transmitting..."
-                        : success
-                          ? "Payload Synced"
-                          : "Seed Lab Data"}
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                </button>
-
-                <button
                   onClick={toggleInsights}
-                  className="mt-2 flex w-full items-center justify-between rounded-[16px] bg-white/5 px-4 py-3 transition-all hover:bg-white/10 active:scale-95"
+                  className="mt-4 flex w-full items-center justify-between rounded-[16px] bg-white/5 px-4 py-3 transition-all hover:bg-white/10 active:scale-95"
                 >
                   <div className="flex items-center gap-3">
                     {profile?.showInsights === false ? (
@@ -467,17 +540,6 @@ const Profile: React.FC = () => {
                     </button>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => setShowConfirmDelete(true)}
-                  disabled={loading || isDeleting}
-                  className="mt-1 flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-white/40 hover:text-red-400 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    Clear Device Pool
-                  </span>
-                </button>
 
                 {/* --- Firebase Cloud Messaging Section --- */}
                 <div className="mt-6 border-t border-slate-700/50 pt-4">

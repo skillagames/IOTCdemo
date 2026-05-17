@@ -59,6 +59,13 @@ export const SUBSCRIPTION_PLANS = [
   },
 ];
 
+export interface SeedConfig {
+  activeCount: number;
+  expiredCount: number;
+  inactiveCount: number;
+  newDevicesCount: number;
+}
+
 export interface UsageStat {
   id: string;
   timestamp: any;
@@ -134,6 +141,22 @@ export const deviceService = {
         planId: data.planId || "yearly", // Fallback plan reference
       };
       const docRef = await addDoc(collection(db, path), newDevice);
+
+      // Requirement: Start with 0 values for analytics so charts show up but are empty
+      const usageCollection = collection(db, "devices", docRef.id, "usage");
+      const batch = writeBatch(db);
+      for (let i = 0; i < 14; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (13 - i));
+        const usageRef = doc(usageCollection);
+        batch.set(usageRef, {
+          timestamp: date,
+          dataUsedMb: 0,
+          activeHours: 0,
+        });
+      }
+      await batch.commit();
+
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
@@ -447,270 +470,125 @@ export const deviceService = {
     }
   },
 
-  async seedDevices(userId: string) {
-    const dummyDevices: Partial<Device>[] = [
-      // 8 ACTIVE
-      {
-        name: "DS-7208HUHI-K2",
-        description: "AcuSense DVR",
-        location: "Main Entrance",
-        serialNumber: "C20240901ZZWR00998",
-        imei: "358762109845321",
-        iccid: "89014103211185101234",
-        subscriptionStatus: "active",
-        activationDate: addDays(new Date(), -1),
-        expirationDate: addDays(new Date(), 364),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-        createdAt: new Date(), // Mark as NEW
-      },
-      {
-        name: "DS-KV8113-WME1",
-        description: "Video Intercom",
-        location: "Loading Bay 4",
-        serialNumber: "C20211010CCWR54321",
-        imei: "447788992233110",
-        iccid: "89852033445566778899",
-        subscriptionStatus: "active",
-        activationDate: addDays(new Date(), -50),
-        expirationDate: addDays(new Date(), 315),
-        totalDataMb: 360,
-        remainingDataMb: 285.2,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2347G2-LU",
-        description: "ColorVu Turret",
-        location: "Front Parking",
-        serialNumber: "C20230820LLWR77665",
-        imei: "860011223344600",
-        iccid: "89000000000000000006",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 360),
-        totalDataMb: 360,
-        remainingDataMb: 345,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2T87G2-L",
-        description: "ColorVu Bullet",
-        location: "Perimeter North",
-        serialNumber: "C20240101NNWR11223",
-        imei: "860011223344601",
-        iccid: "89000000000000000007",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 362),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2386G2-ISU",
-        description: "AcuSense Turret",
-        location: "Warehouse A",
-        serialNumber: "C20240215OOWR22334",
-        imei: "860011223344602",
-        iccid: "89000000000000000008",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 340),
-        totalDataMb: 360,
-        remainingDataMb: 310,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2146G2-ISU",
-        description: "AcuSense Dome",
-        location: "Office Lobby",
-        serialNumber: "C20240320PPWR33445",
-        imei: "860011223344603",
-        iccid: "89000000000000000009",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 355),
-        totalDataMb: 360,
-        remainingDataMb: 325,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2087G2-LU",
-        description: "4K ColorVu Bullet",
-        location: "Main Gate",
-        serialNumber: "C20240410QQWR44556",
-        imei: "860011223344604",
-        iccid: "89000000000000000010",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 360),
-        totalDataMb: 360,
-        remainingDataMb: 358,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2DE4425IW-DE",
-        description: "Speed Dome PTZ",
-        location: "Roof Top",
-        serialNumber: "C20240505RRWR55667",
-        imei: "860011223344605",
-        iccid: "89000000000000000011",
-        subscriptionStatus: "active",
-        expirationDate: addDays(new Date(), 364),
-        totalDataMb: 360,
-        remainingDataMb: 350,
-        planId: "yearly",
-      },
-
-      // 6 EXPIRED
-      {
-        name: "DS-7204HQHI-K1",
-        description: "Digital Video Recorder",
-        location: "Server Room",
-        serialNumber: "C20210920BBWR98765",
-        imei: "862341056789123",
-        iccid: "89441012345678901234",
-        subscriptionStatus: "expired",
-        activationDate: addDays(new Date(), -400),
-        expirationDate: addDays(new Date(), -35),
-        totalDataMb: 360,
-        remainingDataMb: 54.2,
-        planId: "yearly",
-      },
-      {
-        name: "DS-K1T341AM",
-        description: "Access Terminal",
-        location: "HR Office",
-        serialNumber: "C20211105DDWR11223",
-        imei: "112233445566778",
-        iccid: "89000000000000000001",
-        subscriptionStatus: "expired",
-        expirationDate: addDays(new Date(), 200),
-        totalDataMb: 180,
-        remainingDataMb: 0,
-        planId: "topup",
-      },
-      {
-        name: "DS-2CD2143G0-IS",
-        description: "Network Dome Camera",
-        location: "Server Room Entrance",
-        serialNumber: "C20220412HHWR11223",
-        imei: "359988776655443",
-        iccid: "89000000000000000002",
-        subscriptionStatus: "expired",
-        activationDate: addDays(new Date(), -500),
-        expirationDate: addDays(new Date(), -10),
-        totalDataMb: 180,
-        remainingDataMb: 45.5,
-        planId: "topup",
-      },
-      {
-        name: "DS-2CD2047G2-L",
-        description: "ColorVu Bullet",
-        location: "East Wing",
-        serialNumber: "C20220615EEWR11221",
-        imei: "860011223344551",
-        iccid: "89000000000000000012",
-        subscriptionStatus: "expired",
-        expirationDate: addDays(new Date(), -5),
-        totalDataMb: 360,
-        remainingDataMb: 12,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2T47G2-L",
-        description: "High-Res Bullet",
-        location: "Rear Access",
-        serialNumber: "C20220720FFWR22332",
-        imei: "860011223344552",
-        iccid: "89000000000000000013",
-        subscriptionStatus: "expired",
-        expirationDate: addDays(new Date(), 150),
-        totalDataMb: 360,
-        remainingDataMb: 0,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2343G0-I",
-        description: "Fixed Turret",
-        location: "Staff Canteen",
-        serialNumber: "C20220825GGWR33443",
-        imei: "860011223344553",
-        iccid: "89000000000000000014",
-        subscriptionStatus: "expired",
-        expirationDate: addDays(new Date(), 100),
-        totalDataMb: 360,
-        remainingDataMb: 0,
-        planId: "yearly",
-      },
-
-      // 4 INACTIVE
-      {
-        name: "DS-PWA96-M-WE",
-        description: "Wireless Alarm Panel",
-        location: "Boardroom",
-        serialNumber: "C20220228GGWR33445",
-        imei: "123456789012345",
-        iccid: "89123456789012345678",
-        subscriptionStatus: "inactive",
-        expirationDate: addDays(new Date(), 365),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2185G0-IMS",
-        description: "HDMI Dome Camera",
-        location: "Meeting Room",
-        serialNumber: "C20240601SSWR66771",
-        imei: "860011223344606",
-        iccid: "89000000000000000015",
-        subscriptionStatus: "inactive",
-        expirationDate: addDays(new Date(), 365),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2T86G2-IS",
-        description: "AcuSense Bullet",
-        location: "Side Parking",
-        serialNumber: "C20240715TTWR77882",
-        imei: "860011223344607",
-        iccid: "89000000000000000016",
-        subscriptionStatus: "inactive",
-        expirationDate: addDays(new Date(), 365),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-      },
-      {
-        name: "DS-2CD2347G2-L",
-        description: "ColorVu Fixed Turret",
-        location: "Gym Entrance",
-        serialNumber: "C20240820UUWR88993",
-        imei: "860011223344608",
-        iccid: "89000000000000000017",
-        subscriptionStatus: "inactive",
-        expirationDate: addDays(new Date(), 365),
-        totalDataMb: 360,
-        remainingDataMb: 360,
-        planId: "yearly",
-      },
+  async seedDevices(userId: string, config: SeedConfig = { activeCount: 2, expiredCount: 6, inactiveCount: 4, newDevicesCount: 1 }) {
+    const devicesToSeed: (Partial<Device> & { isNew?: boolean })[] = [];
+    
+    const deviceModels = [
+      { name: "DS-7208HUHI-K2", desc: "AcuSense DVR" },
+      { name: "DS-KV8113-WME1", desc: "Video Intercom" },
+      { name: "DS-7204HQHI-K1", desc: "Digital Video Recorder" },
+      { name: "DS-K1T341AM", desc: "Access Terminal" },
+      { name: "DS-2CD2143G0-IS", desc: "Network Dome Camera" },
+      { name: "DS-2CD2047G2-L", desc: "ColorVu Bullet" },
+      { name: "DS-2CD2T47G2-L", desc: "High-Res Bullet" },
+      { name: "DS-2CD2343G0-I", desc: "Fixed Turret" },
+      { name: "DS-PWA96-M-WE", desc: "Wireless Alarm Panel" },
+      { name: "DS-2CD2185G0-IMS", desc: "HDMI Dome Camera" },
+      { name: "DS-2CD2T86G2-IS", desc: "AcuSense Bullet" },
+      { name: "DS-2CD2347G2-L", desc: "ColorVu Fixed Turret" },
     ];
 
-    // Shuffle to ensure a mixture of everything as requested
-    const shuffledDevices = [...dummyDevices].sort(() => Math.random() - 0.5);
+    const locations = ["Main Entrance", "Loading Bay 4", "Server Room", "HR Office", "East Wing", "Rear Access", "Staff Canteen", "Boardroom", "Meeting Room", "Side Parking", "Gym Entrance", "Front Parking", "Office Lobby", "Warehouse A"];
+
+    // 1. New Devices (Active, 0 usage)
+    for (let i = 0; i < config.newDevicesCount; i++) {
+      const model = deviceModels[i % deviceModels.length];
+      devicesToSeed.push({
+        name: model.name,
+        description: model.desc,
+        location: locations[Math.floor(Math.random() * locations.length)],
+        serialNumber: `C2024${Math.floor(Math.random() * 9000 + 1000)}ZZWR${Math.floor(Math.random() * 90000 + 10000)}`,
+        imei: `35876210${Math.floor(Math.random() * 9000000 + 1000000)}`,
+        iccid: `89014103211185${Math.floor(Math.random() * 900000 + 100000)}`,
+        subscriptionStatus: "active",
+        activationDate: new Date(),
+        expirationDate: addDays(new Date(), 365),
+        totalDataMb: 360,
+        remainingDataMb: 360,
+        planId: "yearly",
+        createdAt: new Date(),
+        isNew: true as any, // Temporary marker for seeding usage
+      });
+    }
+
+    // 2. Remaining Active Devices (Regular usage)
+    const remainingActive = Math.max(0, config.activeCount - config.newDevicesCount);
+    for (let i = 0; i < remainingActive; i++) {
+      const model = deviceModels[(config.newDevicesCount + i) % deviceModels.length];
+      devicesToSeed.push({
+        name: model.name,
+        description: model.desc,
+        location: locations[Math.floor(Math.random() * locations.length)],
+        serialNumber: `C2023${Math.floor(Math.random() * 9000 + 1000)}AAWR${Math.floor(Math.random() * 90000 + 10000)}`,
+        imei: `86234105${Math.floor(Math.random() * 9000000 + 1000000)}`,
+        iccid: `8944101234${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
+        subscriptionStatus: "active",
+        activationDate: addDays(new Date(), -Math.floor(Math.random() * 100)),
+        expirationDate: addDays(new Date(), Math.floor(Math.random() * 300) + 30),
+        totalDataMb: 360,
+        remainingDataMb: parseFloat((Math.random() * 300 + 50).toFixed(1)),
+        planId: "yearly",
+      });
+    }
+
+    // 3. Expired Devices (Half plan, half data)
+    for (let i = 0; i < config.expiredCount; i++) {
+      const model = deviceModels[(config.activeCount + i) % deviceModels.length];
+      const isDataExpired = i < Math.ceil(config.expiredCount / 2);
+      
+      devicesToSeed.push({
+        name: model.name,
+        description: model.desc,
+        location: locations[Math.floor(Math.random() * locations.length)],
+        serialNumber: `C2022${Math.floor(Math.random() * 9000 + 1000)}EXWR${Math.floor(Math.random() * 90000 + 10000)}`,
+        imei: `11223344${Math.floor(Math.random() * 9000000 + 1000000)}`,
+        iccid: `8900000000${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
+        subscriptionStatus: "expired",
+        activationDate: addDays(new Date(), -400),
+        expirationDate: isDataExpired ? addDays(new Date(), 100) : addDays(new Date(), -Math.floor(Math.random() * 30 + 1)),
+        totalDataMb: isDataExpired ? 180 : 360,
+        remainingDataMb: isDataExpired ? 0 : parseFloat((Math.random() * 20).toFixed(1)),
+        planId: isDataExpired ? "topup" : "yearly",
+      });
+    }
+
+    // 4. Inactive Devices
+    for (let i = 0; i < config.inactiveCount; i++) {
+      const model = deviceModels[(config.activeCount + config.expiredCount + i) % deviceModels.length];
+      devicesToSeed.push({
+        name: model.name,
+        description: model.desc,
+        location: locations[Math.floor(Math.random() * locations.length)],
+        serialNumber: `C2024${Math.floor(Math.random() * 9000 + 1000)}INWR${Math.floor(Math.random() * 90000 + 10000)}`,
+        imei: `12345678${Math.floor(Math.random() * 9000000 + 1000000)}`,
+        iccid: `89123456${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
+        subscriptionStatus: "inactive",
+        expirationDate: addDays(new Date(), 365),
+        totalDataMb: 360,
+        remainingDataMb: 360,
+        planId: "yearly",
+      });
+    }
+
+    // Shuffle and Batch Write
+    const shuffledDevices = [...devicesToSeed].sort(() => Math.random() - 0.5);
 
     for (const device of shuffledDevices) {
       const batch = writeBatch(db);
+      const isNew = (device as any).isNew;
+      delete (device as any).isNew; // Cleanup temporary marker
+
       const newDevice = {
         ...device,
         ownerId: userId,
         lastUpdated: serverTimestamp(),
-        createdAt: device.createdAt || addDays(new Date(), -10),
+        createdAt: device.createdAt || addDays(new Date(), -Math.floor(Math.random() * 20 + 5)),
       };
 
       const docRef = doc(collection(db, "devices"));
       batch.set(docRef, newDevice);
 
-      // Seed 14 days of usage stats for each device
+      // Seed 14 days of usage stats
       const usageCollection = collection(db, "devices", docRef.id, "usage");
       for (let i = 0; i < 14; i++) {
         const date = new Date();
@@ -719,8 +597,8 @@ export const deviceService = {
         const usageRef = doc(usageCollection);
         batch.set(usageRef, {
           timestamp: date,
-          dataUsedMb: parseFloat((Math.random() * 2.5 + 1.5).toFixed(2)),
-          activeHours: Math.floor(Math.random() * 8) + 4,
+          dataUsedMb: isNew ? 0 : parseFloat((Math.random() * 2.5 + 1.5).toFixed(2)),
+          activeHours: isNew ? 0 : Math.floor(Math.random() * 8) + 4,
         });
       }
       await batch.commit();
