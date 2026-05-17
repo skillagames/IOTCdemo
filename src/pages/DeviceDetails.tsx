@@ -236,7 +236,7 @@ const DeviceDetails: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* Brand Partner & Device Identity Header */}
-      <section className="relative flex items-center justify-center pt-2 pb-1 px-1">
+      <section className="relative flex items-center justify-center pt-1 pb-1 px-1">
         <div className="flex flex-col items-center gap-2">
           <p className="text-[7px] font-black font-montserrat uppercase tracking-[0.5em] text-slate-400">
             Manufacturer

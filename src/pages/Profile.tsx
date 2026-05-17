@@ -307,7 +307,7 @@ const Profile: React.FC = () => {
           Operational Support
         </button>
 
-        <div className="text-center mt-2 pb-4">
+        <div className="text-center mt-0.5 pb-0">
           <span className="text-[10px] font-black text-slate-400/50 uppercase tracking-widest">
             Version: v1.1.14
           </span>
