@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Plus,
-  Settings,
   ChevronLeft,
-  LayoutDashboard,
-  ShieldCheck,
   LogOut,
-  Scan,
   Radio,
-  Home,
-  Network,
-  User as UserIcon,
 } from "lucide-react";
+import {
+  HomeIcon,
+  QrCodeIcon,
+  ServerStackIcon,
+  UserIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/solid";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../lib/firebase";
 import { cn } from "../lib/utils";
@@ -59,15 +58,15 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
   const ENABLE_LOGO_ANIMATION = true;
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Scan, label: "Scan", path: "/scan" },
-    { icon: Network, label: "Devices", path: "/devices" },
+    { icon: HomeIcon, label: "Home", path: "/" },
+    { icon: QrCodeIcon, label: "Scan", path: "/scan" },
+    { icon: ServerStackIcon, label: "Devices", path: "/devices" },
     { icon: UserIcon, label: "Profile", path: "/profile" },
   ];
 
   if (isAdmin) {
     navItems.splice(2, 0, {
-      icon: ShieldCheck,
+      icon: ShieldCheckIcon,
       label: "Admin",
       path: "/admin",
     });
@@ -206,10 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showBack }) => {
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <item.icon
-                    className={cn(
-                      "h-6 w-6",
-                      isActive ? "stroke-[2.5px]" : "stroke-[2px]",
-                    )}
+                    className="h-6 w-6"
                   />
                 </motion.div>
 
