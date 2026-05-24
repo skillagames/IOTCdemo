@@ -21,7 +21,7 @@ import {
   Database,
   Calendar,
 } from "lucide-react";
-import { deviceService, Device } from "../services/deviceService";
+import { deviceService, Device, getManufacturerLogo } from "../services/deviceService";
 import { useAuth } from "../context/AuthContext";
 import { formatDate, cn } from "../lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -774,13 +774,18 @@ const Dashboard: React.FC = () => {
       <section className="flex flex-col items-center justify-center pt-2 pb-12 mt-14">
         <div className="flex flex-col items-center gap-2.5">
           <p className="text-[7px] font-black font-montserrat uppercase tracking-[0.5em] text-slate-400">
-            Hardware Partner
+            Hardware Partners
           </p>
-          <img
-            src="/hikvision.svg"
-            alt="Hikvision Logo"
-            className="h-5 w-auto object-contain grayscale opacity-40"
-          />
+          <div className="flex items-center gap-6 justify-center flex-wrap">
+            {Array.from(new Set(devices.map(d => (d.manufacturer || "HIKVISION").trim().toUpperCase()))).map((mKey) => (
+              <img
+                key={mKey as string}
+                src={getManufacturerLogo(mKey as string)}
+                alt={`${mKey as string} Logo`}
+                className="h-5 w-auto object-contain grayscale opacity-40 hover:opacity-80 transition-opacity"
+              />
+            ))}
+          </div>
         </div>
       </section>
     </div>

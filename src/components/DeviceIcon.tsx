@@ -9,6 +9,7 @@ import {
   Cpu,
   Smartphone,
   Eye,
+  Camera,
   LucideProps,
 } from "lucide-react";
 
@@ -26,6 +27,10 @@ export const DeviceIcon = ({
   const text = (description + " " + name).toLowerCase();
 
   // Priority for specific device types
+  if (text.includes("dashcam")) {
+    return <Camera {...props} />;
+  }
+
   if (text.includes("intercom") || text.includes("doorbell")) {
     if (text.includes("video")) return <Video {...props} />;
     return <Phone {...props} />;

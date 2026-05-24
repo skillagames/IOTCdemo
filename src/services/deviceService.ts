@@ -37,6 +37,18 @@ export interface Device {
   lastUpdated: any;
   createdAt?: any;
   autoRenew?: boolean;
+  manufacturer?: string;
+}
+
+export function getManufacturerLogo(manufacturer?: string): string {
+  const m = (manufacturer || "HIKVISION").trim().toUpperCase();
+  if (m.includes("JIMI")) {
+    return "/Jimi-Iot-logo-1.png";
+  }
+  if (m === "BS") {
+    return "/Bslogo.png";
+  }
+  return "/hikvision.svg";
 }
 
 export const SUBSCRIPTION_PLANS = [
@@ -93,7 +105,11 @@ export const deviceService = {
       const q = query(collection(db, path), where("ownerId", "==", userId));
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() }) as Device,
+        (doc) => ({
+          id: doc.id,
+          manufacturer: "HIKVISION",
+          ...doc.data(),
+        } as Device),
       );
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
@@ -107,7 +123,11 @@ export const deviceService = {
       const docRef = doc(db, "devices", deviceId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Device;
+        return {
+          id: docSnap.id,
+          manufacturer: "HIKVISION",
+          ...docSnap.data(),
+        } as Device;
       }
       return null;
     } catch (error) {
@@ -127,6 +147,7 @@ export const deviceService = {
       const expirationDate = addDays(now, 365);
 
       const newDevice = {
+        manufacturer: "HIKVISION",
         ...data,
         imei: data.imei || "N/A",
         iccid: data.iccid || "N/A",
@@ -262,7 +283,7 @@ export const deviceService = {
 
   async seedMasterRegistry() {
     // Only run if not already seeded in this session
-    const isSeededInSession = sessionStorage.getItem("master_registry_seeded");
+    const isSeededInSession = sessionStorage.getItem("master_registry_seeded_v5");
     if (isSeededInSession) return;
 
     try {
@@ -293,6 +314,22 @@ export const deviceService = {
           model: "DS-PWA96-M-WE",
           description: "HIKVISION AX PRO",
           manufacturer: "Hikvision",
+        },
+        {
+          serialNumber: "CK2144765",
+          imei: "867806072755749",
+          barcode: "6975248490460",
+          materialCode: "307900723",
+          model: "AE-DI5052-G40 PRO",
+          description: "DashCam",
+          manufacturer: "Hikvision",
+        },
+        {
+          serialNumber: "869247060300081",
+          imei: "869247060300081",
+          model: "Jimi IoT 4G Al DashCam",
+          description: "Jimi IoT 4G Al DashCam",
+          manufacturer: "JimiIoT",
         }
       ];
 
@@ -310,10 +347,42 @@ export const deviceService = {
             lastSeeded: serverTimestamp(),
             createdAt: serverTimestamp(),
           });
+        } else {
+          // Update details if it already exists to keep name current
+          const docId = snapshot.docs[0].id;
+          await updateDoc(doc(db, "master_registry", docId), {
+            description: deviceData.description,
+            model: deviceData.model,
+            manufacturer: deviceData.manufacturer,
+            lastSeeded: serverTimestamp(),
+          });
         }
       }
 
-      sessionStorage.setItem("master_registry_seeded", "true");
+      // Also proactively update any existing registered user devices in the "devices" collection with this IMEI or Serial Number
+      try {
+        const devicesRef = collection(db, "devices");
+        const deviceQueries = [
+          query(devicesRef, where("serialNumber", "==", "869247060300081")),
+          query(devicesRef, where("imei", "==", "869247060300081"))
+        ];
+        for (const dq of deviceQueries) {
+          const dSnap = await getDocs(dq);
+          for (const docSnap of dSnap.docs) {
+            await updateDoc(doc(db, "devices", docSnap.id), {
+              name: "Jimi IoT 4G Al DashCam",
+              description: "Jimi IoT 4G Al DashCam",
+              manufacturer: "JimiIoT",
+              lastUpdated: serverTimestamp()
+            });
+          }
+        }
+      } catch (devMigrateError) {
+        console.warn("Could not migrate registered devices on seeding:", devMigrateError);
+      }
+
+      sessionStorage.setItem("master_registry_seeded", "v5");
+      sessionStorage.setItem("master_registry_seeded_v5", "true");
     } catch (e) {
       console.warn(
         "Master Registry Sync: Note - Only operators should provision global hardware keys.",
@@ -579,6 +648,7 @@ export const deviceService = {
       delete (device as any).isNew; // Cleanup temporary marker
 
       const newDevice = {
+        manufacturer: "HIKVISION",
         ...device,
         ownerId: userId,
         lastUpdated: serverTimestamp(),

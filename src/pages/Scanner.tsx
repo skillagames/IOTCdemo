@@ -132,8 +132,6 @@ const Scanner: React.FC = () => {
         await stopScanner();
       }
     } catch (err: any) {
-      console.error("Camera access failed", err);
-      // Only set error if it's a real failure, not just a transition conflict
       const errMsg = err?.toString() || "";
       const isInterruptedError =
         errMsg.includes("already under transition") ||
@@ -141,6 +139,11 @@ const Scanner: React.FC = () => {
         errMsg.includes("play() request was interrupted") ||
         errMsg.includes("NotAllowedError");
 
+      if (!isInterruptedError) {
+        console.error("Camera access failed", err);
+      }
+
+      // Only set error if it's a real failure, not just a transition conflict
       if (!isInterruptedError && isMountedRef.current) {
         setError("Camera access blocked or not found. Try manual entry.");
       }
@@ -204,10 +207,28 @@ const Scanner: React.FC = () => {
     
     document.body.style.overscrollBehaviorY = "none";
     document.body.style.overflow = "hidden";
+
+    // Mute unhandled promise rejections specifically caused by the webcam/video play() 
+    // being interrupted when navigating/closing scanner container.
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      const message = reason?.message || String(reason || "");
+      if (
+        message.includes("play() request was interrupted") ||
+        message.includes("The play() request was interrupted") ||
+        message.includes("media was removed from the document")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
     
     return () => {
       document.body.style.overscrollBehaviorY = originalOverscroll;
       document.body.style.overflow = originalOverflow;
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
   }, []);
 
@@ -238,6 +259,7 @@ const Scanner: React.FC = () => {
         barcode: hardwareData.barcode || "",
         description: hardwareData.description || "",
         location: hardwareData.location || "",
+        manufacturer: hardwareData.manufacturer,
       });
     } catch (err) {
       console.error("Verification error", err);
@@ -330,6 +352,7 @@ const Scanner: React.FC = () => {
         barcode: deviceInfo.barcode,
         description: deviceInfo.description,
         location: deviceInfo.location,
+        manufacturer: deviceInfo.manufacturer,
         ownerId: user.uid,
       });
       navigate(`/devices/${deviceId}`);
@@ -463,14 +486,17 @@ const Scanner: React.FC = () => {
                           description={deviceInfo?.description}
                         />
                       </div>
-                      <div className="space-y-0.5">
+                      <div className="flex flex-col gap-1.5">
                         <h4 className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 leading-none">
                           Device Identified
                         </h4>
-                        <p className="text-[12px] font-black tracking-tight text-slate-900 tabular-nums leading-none pt-1">
-                          SN: {deviceInfo?.serialNumber}
+                        <p className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-900 leading-none">
+                          SN: <span className="tabular-nums">{deviceInfo?.serialNumber?.toUpperCase()}</span>
                         </p>
-                        <div className="h-1 w-6 bg-slate-300 rounded-full mt-1.5" />
+                        <p className="text-[8px] font-black font-montserrat uppercase tracking-widest text-slate-400 leading-none">
+                          MANUFACTURER: {deviceInfo?.manufacturer?.toUpperCase() || "N/A"}
+                        </p>
+                        <div className="h-0.5 w-6 bg-slate-200 rounded-full mt-0.5" />
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

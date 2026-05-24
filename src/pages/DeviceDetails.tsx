@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { deviceService, Device, UsageStat, SUBSCRIPTION_PLANS } from "../services/deviceService";
+import { deviceService, Device, UsageStat, SUBSCRIPTION_PLANS, getManufacturerLogo } from "../services/deviceService";
 import {
   Activity,
   RefreshCcw,
@@ -242,9 +242,9 @@ const DeviceDetails: React.FC = () => {
             Manufacturer
           </p>
           <img
-            src="/hikvision.svg"
+            src={getManufacturerLogo(device?.manufacturer)}
             alt="Manufacturer Logo"
-            className="h-4.5 w-auto object-contain opacity-80"
+            className="h-6 w-auto object-contain opacity-90 transition-all duration-300"
           />
         </div>
       </section>
@@ -298,7 +298,7 @@ const DeviceDetails: React.FC = () => {
               <span>{device.description || device.name}</span>
             </h2>
             {device.description && (
-              <p className="text-sm font-medium text-slate-500 leading-tight">
+              <p className="text-[14px] font-medium text-slate-500 leading-tight">
                 {device.name}
               </p>
             )}
