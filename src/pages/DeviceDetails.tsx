@@ -251,23 +251,41 @@ const DeviceDetails: React.FC = () => {
 
       <div className="mx-6 border-t border-slate-200/60" />
 
-      {/* Location Bar */}
+      {/* Location/Status Bar */}
       <section className="px-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="h-3 w-3 text-primary" />
           <p className="text-[10px] font-black font-montserrat uppercase tracking-widest text-slate-400">
             {device.location || "Add Location"}
           </p>
+          <button 
+            onClick={() => {
+              setLocationValue(device.location || "");
+              setShowLocationModal(true);
+            }}
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all ml-0.5"
+          >
+            <Edit3 className="h-2.5 w-2.5" />
+          </button>
         </div>
-        <button 
-          onClick={() => {
-            setLocationValue(device.location || "");
-            setShowLocationModal(true);
-          }}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all"
+
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black font-montserrat uppercase tracking-tight whitespace-nowrap",
+            isExpired && "bg-red-50 text-red-500",
+            isInactive && "bg-slate-100 text-slate-500",
+            !isExpired && !isInactive && "bg-emerald-50 text-emerald-600",
+          )}
         >
-          <Edit3 className="h-3 w-3" />
-        </button>
+          {isExpired ? (
+            <XCircle className="h-3 w-3" />
+          ) : isInactive ? (
+            <AlertCircle className="h-3 w-3" />
+          ) : (
+            <CheckCircle2 className="h-3 w-3" />
+          )}
+          {isPlanExpired ? "Plan Expired" : isDataExpired ? "Data Expired" : isInactive ? "Inactive" : device.subscriptionStatus}
+        </div>
       </section>
 
       {/* Header Card */}
@@ -293,7 +311,7 @@ const DeviceDetails: React.FC = () => {
         </div>
 
         <div className="relative z-10 flex items-start">
-          <div className="flex-1 space-y-1 pr-8 text-left">
+          <div className="flex-1 space-y-1 pr-4 text-left">
             <h2 className="text-lg font-black font-montserrat text-slate-900 leading-none break-words flex items-center gap-2 flex-wrap">
               <span>{device.description || device.name}</span>
             </h2>
@@ -345,23 +363,6 @@ const DeviceDetails: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-          <div
-            className={cn(
-              "absolute right-0 top-0 flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[8px] font-black font-montserrat uppercase tracking-tight whitespace-nowrap",
-              isExpired && "bg-red-50 text-red-500",
-              isInactive && "bg-slate-100 text-slate-500",
-              !isExpired && !isInactive && "bg-emerald-50 text-emerald-600",
-            )}
-          >
-            {isExpired ? (
-              <XCircle className="h-2.5 w-2.5" />
-            ) : isInactive ? (
-              <AlertCircle className="h-2.5 w-2.5" />
-            ) : (
-              <CheckCircle2 className="h-2.5 w-2.5" />
-            )}
-            {isPlanExpired ? "Plan Expired" : isDataExpired ? "Data Expired" : isInactive ? "Inactive" : device.subscriptionStatus}
           </div>
         </div>
 
