@@ -152,7 +152,7 @@ export const MASTER_DEVICES = [
     imei: "865622075263116",
     iccid: "89014103211185002781",
     model: "DHI-ARC3800H-FW2(868)",
-    description: "Alarm Hub",
+    description: "DAHUA Alarm Hub",
     manufacturer: "DAHUA VISION TECHNOLOGY",
   }
 ];
@@ -378,7 +378,7 @@ export const deviceService = {
     if (isMasterRegistrySeededThisSession || isMasterRegistrySeedingActive) return;
 
     // Check sessionStorage as well to avoid redundant database calls if we've completed a session-wide seed successful write
-    const isSeededInSession = sessionStorage.getItem("master_registry_seeded_v15");
+    const isSeededInSession = sessionStorage.getItem("master_registry_seeded_v16");
     if (isSeededInSession === "true") {
       isMasterRegistrySeededThisSession = true;
       return;
@@ -419,11 +419,13 @@ export const deviceService = {
       // Also proactively update any existing registered user devices in the "devices" collection with this IMEI or Serial Number
       try {
         const devicesRef = collection(db, "devices");
-        const deviceQueries = [
+        
+        // Migrate Jimi
+        const jimiQueries = [
           query(devicesRef, where("serialNumber", "==", "869247060300081")),
           query(devicesRef, where("imei", "==", "869247060300081"))
         ];
-        for (const dq of deviceQueries) {
+        for (const dq of jimiQueries) {
           const dSnap = await getDocs(dq);
           for (const docSnap of dSnap.docs) {
             await updateDoc(doc(db, "devices", docSnap.id), {
@@ -434,12 +436,30 @@ export const deviceService = {
             });
           }
         }
+
+        // Migrate Dahua
+        const dahuaQueries = [
+          query(devicesRef, where("serialNumber", "==", "BF00278PAJ00001")),
+          query(devicesRef, where("serialNumber", "==", "BF0O278PAJ00001")),
+          query(devicesRef, where("imei", "==", "865622075263116"))
+        ];
+        for (const dq of dahuaQueries) {
+          const dSnap = await getDocs(dq);
+          for (const docSnap of dSnap.docs) {
+            await updateDoc(doc(db, "devices", docSnap.id), {
+              description: "DAHUA Alarm Hub",
+              model: "DHI-ARC3800H-FW2(868)",
+              manufacturer: "DAHUA VISION TECHNOLOGY",
+              lastUpdated: serverTimestamp()
+            });
+          }
+        }
       } catch (devMigrateError) {
         console.warn("Could not migrate registered devices on seeding:", devMigrateError);
       }
 
       sessionStorage.setItem("master_registry_seeded_force_v10", "true");
-      sessionStorage.setItem("master_registry_seeded_v15", "true");
+      sessionStorage.setItem("master_registry_seeded_v16", "true");
       isMasterRegistrySeededThisSession = true;
       console.log("Master database registry seeded successfully!");
     } catch (e) {
