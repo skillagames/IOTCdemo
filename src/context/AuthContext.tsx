@@ -168,6 +168,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             notificationService
               .checkDeviceExpirations(user.uid)
               .catch(() => {});
+
+            // Proactively sync/seed master hardware catalog now that we are signed in and have write permissions
+            import("../services/deviceService")
+              .then(({ deviceService }) => {
+                deviceService.seedMasterRegistry().catch((err) => {
+                  console.warn("[AuthContext] Failed to seed master registry in Firestore on signIn:", err);
+                });
+              })
+              .catch((err) => {
+                console.warn("[AuthContext] Could not load device service for background seeding:", err);
+              });
           } else {
             setProfile(null);
           }
