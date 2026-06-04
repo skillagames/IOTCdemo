@@ -806,18 +806,18 @@ const DeviceDetails: React.FC = () => {
                     className="relative flex flex-col items-center h-full"
                   >
                     <div className="flex-1 flex flex-col items-center justify-center w-full">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-400 to-blue-500 text-white mb-4 shadow-lg shadow-indigo-400/20">
-                        <CreditCard className="h-6 w-6" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-400 to-blue-500 text-white mb-2 shadow-lg shadow-indigo-400/20">
+                        <CreditCard className="h-5 w-5" />
                       </div>
                       
                       <h2 className="text-xl font-black font-montserrat text-slate-900 tracking-tight text-center">
                         Payment Details
                       </h2>
-                      <p className="text-[10px] font-bold font-montserrat text-slate-400 uppercase tracking-widest mt-1 text-center">
+                      <p className="text-[10px] font-bold font-montserrat text-slate-400 uppercase tracking-widest mt-0.5 text-center">
                         Secure Transaction
                       </p>
-                      <div className="mt-2.5 mb-1.5 w-full">
-                        <div className="mx-auto flex flex-col items-center justify-center bg-slate-50 px-6 py-2.5 rounded-[28px] border border-slate-100 shadow-sm w-fit min-w-[130px]">
+                      <div className="mt-2 mb-1 w-full">
+                        <div className="mx-auto flex flex-col items-center justify-center bg-slate-50 px-6 py-2 rounded-[28px] border border-slate-100 shadow-sm w-fit min-w-[130px]">
                           <span className="text-[8px] font-black font-montserrat text-slate-400 uppercase tracking-widest leading-none mb-1">
                             Total Charge
                           </span>
@@ -827,8 +827,8 @@ const DeviceDetails: React.FC = () => {
                         </div>
                       </div>
    
-                      <div className="mt-2 w-full space-y-2.5">
-                        <div className="space-y-1">
+                      <div className="mt-1 w-full space-y-2">
+                        <div className="space-y-0.5">
                           <label className="text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400 ml-1">Card Holder</label>
                           <input
                             type="text"
@@ -838,7 +838,7 @@ const DeviceDetails: React.FC = () => {
                             className="h-10 w-full rounded-xl border border-slate-100 bg-white px-4 text-sm font-bold text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-300"
                           />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           <label className="text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400 ml-1">Card Number</label>
                           <div className="relative">
                             <input
@@ -866,7 +866,7 @@ const DeviceDetails: React.FC = () => {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
+                          <div className="space-y-0.5">
                             <label className="text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400 ml-1">Expiry</label>
                             <input
                               type="text"
@@ -875,7 +875,7 @@ const DeviceDetails: React.FC = () => {
                               className="h-10 w-full rounded-xl border border-slate-100 bg-white px-4 text-sm text-slate-600 focus:border-indigo-500 focus:bg-white focus:outline-none transition-all"
                             />
                           </div>
-                          <div className="space-y-1">
+                          <div className="space-y-0.5">
                             <label className="text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400 ml-1">CVV</label>
                             <input
                               type="password"
@@ -888,7 +888,7 @@ const DeviceDetails: React.FC = () => {
                       </div>
                     </div>
    
-                    <div className="mt-6 w-full space-y-3 shrink-0">
+                    <div className="mt-4 w-full space-y-2.5 shrink-0">
                       <button
                         onClick={handleRenew}
                         disabled={!cardData.name || !cardData.number}
