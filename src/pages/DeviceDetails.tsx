@@ -816,8 +816,8 @@ const DeviceDetails: React.FC = () => {
                       <p className="text-[10px] font-bold font-montserrat text-slate-400 uppercase tracking-widest mt-1 text-center">
                         Secure Transaction
                       </p>
-                      <div className="mt-4 mb-2 w-full">
-                        <div className="mx-auto flex flex-col items-center justify-center bg-slate-50 px-6 py-3 rounded-[28px] border border-slate-100 shadow-sm w-fit min-w-[130px]">
+                      <div className="mt-2.5 mb-1.5 w-full">
+                        <div className="mx-auto flex flex-col items-center justify-center bg-slate-50 px-6 py-2.5 rounded-[28px] border border-slate-100 shadow-sm w-fit min-w-[130px]">
                           <span className="text-[8px] font-black font-montserrat text-slate-400 uppercase tracking-widest leading-none mb-1">
                             Total Charge
                           </span>
@@ -827,7 +827,7 @@ const DeviceDetails: React.FC = () => {
                         </div>
                       </div>
    
-                      <div className="mt-6 w-full space-y-3">
+                      <div className="mt-2 w-full space-y-2.5">
                         <div className="space-y-1">
                           <label className="text-[9px] font-black font-montserrat uppercase tracking-widest text-slate-400 ml-1">Card Holder</label>
                           <input
