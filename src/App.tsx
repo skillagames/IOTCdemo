@@ -179,7 +179,7 @@ export default function App() {
     notificationService.initializeChannels();
     
     // Seed master hardware registry so manual entry finds devices
-    deviceService.seedMasterRegistry();
+    // deviceService.seedMasterRegistry();
   }, []);
 
   return (

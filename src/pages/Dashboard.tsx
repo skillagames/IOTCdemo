@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user) {
       loadDevices();
-      deviceService.seedMasterRegistry();
+      // deviceService.seedMasterRegistry();
     }
   }, [user]);
 
@@ -209,9 +209,17 @@ const Dashboard: React.FC = () => {
   const filteredDevices = (filter
     ? devices.filter((d) => d.subscriptionStatus === filter)
     : devices
-  ).sort((a, b) => {
-    const timeA = a.createdAt?.toDate?.()?.getTime() || a.createdAt?.getTime?.() || 0;
-    const timeB = b.createdAt?.toDate?.()?.getTime() || b.createdAt?.getTime?.() || 0;
+  ).sort((a, b: any) => {
+    const timeA = Math.max(
+      a.createdAt?.toDate?.()?.getTime() || a.createdAt?.getTime?.() || 0,
+      (a as any).renewedAt?.toDate?.()?.getTime() || (a as any).renewedAt?.getTime?.() || 0,
+      (a as any).activatedAt?.toDate?.()?.getTime() || (a as any).activatedAt?.getTime?.() || 0
+    );
+    const timeB = Math.max(
+      b.createdAt?.toDate?.()?.getTime() || b.createdAt?.getTime?.() || 0,
+      (b as any).renewedAt?.toDate?.()?.getTime() || (b as any).renewedAt?.getTime?.() || 0,
+      (b as any).activatedAt?.toDate?.()?.getTime() || (b as any).activatedAt?.getTime?.() || 0
+    );
     return timeB - timeA;
   });
 
@@ -858,6 +866,18 @@ const DeviceCard = ({
                        (device.createdAt?.seconds ? new Date(device.createdAt.seconds * 1000) : null));
   const isNew = createdAtDate && (new Date().getTime() - createdAtDate.getTime()) < 48 * 60 * 60 * 1000;
 
+  // Check if "Renewed" (renewed in last 48 hours after being expired)
+  const renewedAtDate = device.renewedAt?.toDate?.() || 
+                       (device.renewedAt instanceof Date ? device.renewedAt : 
+                       (device.renewedAt?.seconds ? new Date(device.renewedAt.seconds * 1000) : null));
+  const isRenewed = renewedAtDate && (new Date().getTime() - renewedAtDate.getTime()) < 48 * 60 * 60 * 1000;
+
+  // Check if "Activated" (activated in last 48 hours from inactive)
+  const activatedAtDate = device.activatedAt?.toDate?.() || 
+                       (device.activatedAt instanceof Date ? device.activatedAt : 
+                       (device.activatedAt?.seconds ? new Date(device.activatedAt.seconds * 1000) : null));
+  const isActivated = activatedAtDate && (new Date().getTime() - activatedAtDate.getTime()) < 48 * 60 * 60 * 1000;
+
   return (
     <button
       onClick={onClick}
@@ -870,8 +890,17 @@ const DeviceCard = ({
             : "border-slate-100 active:border-emerald-500 md:hover:border-emerald-500",
       )}
     >
-      {/* NEW Badge */}
-      {isNew && (
+      {/* RENEWED / NEW / ACTIVATED Badge */}
+      {isRenewed ? (
+        <div className="absolute -top-1.5 right-4 z-20">
+          <div className="flex items-center gap-1 rounded-full bg-slate-900 px-2 py-0.5 shadow-md shadow-slate-200 ring-1 ring-white/20">
+            <div className="h-1 w-1 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-[7px] font-black font-montserrat uppercase tracking-[0.05em] text-white">
+              Renewed
+            </span>
+          </div>
+        </div>
+      ) : isNew ? (
         <div className="absolute -top-1.5 right-4 z-20">
           <div className="flex items-center gap-1 rounded-full bg-slate-900 px-2 py-0.5 shadow-md shadow-slate-200 ring-1 ring-white/20">
             <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
@@ -880,7 +909,16 @@ const DeviceCard = ({
             </span>
           </div>
         </div>
-      )}
+      ) : isActivated ? (
+        <div className="absolute -top-1.5 right-4 z-20">
+          <div className="flex items-center gap-1 rounded-full bg-slate-900 px-2 py-0.5 shadow-md shadow-slate-200 ring-1 ring-white/20">
+            <div className="h-1 w-1 rounded-full bg-blue-400 animate-pulse" />
+            <span className="text-[7px] font-black font-montserrat uppercase tracking-[0.05em] text-white">
+              Activated
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       <div
         className={cn(

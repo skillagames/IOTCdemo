@@ -36,6 +36,8 @@ export interface Device {
   remainingDataMb: number;
   lastUpdated: any;
   createdAt?: any;
+  renewedAt?: any;
+  activatedAt?: any;
   autoRenew?: boolean;
   manufacturer?: string;
 }
@@ -101,61 +103,6 @@ export interface MasterRegistryEntry {
   location?: string;
 }
 
-let isMasterRegistrySeedingActive = false;
-let isMasterRegistrySeededThisSession = false;
-
-export const MASTER_DEVICES = [
-  {
-    serialNumber: "6001237010828",
-    imei: "358762109845321",
-    iccid: "89014103211185101234",
-    model: "IoT-Hub-X1",
-    manufacturer: "IoTConnect Labs",
-  },
-  {
-    imei: "869816053499231",
-    serialNumber: "K78038990",
-    materialCode: "303201410",
-    barcode: "6931847166557",
-    model: "DS-MCW407",
-    description: "Body Camera",
-    manufacturer: "Hikvision",
-  },
-  {
-    serialNumber: "Q44112434",
-    imei: "358762109845777",
-    iccid: "89014103211185109999",
-    materialCode: "302401688",
-    barcode: "6941264054313",
-    model: "DS-PWA96-M-WE",
-    description: "HIKVISION AX PRO",
-    manufacturer: "Hikvision",
-  },
-  {
-    serialNumber: "CK2144765",
-    imei: "867806072755749",
-    barcode: "6975248490460",
-    materialCode: "307900723",
-    model: "AE-DI5052-G40 PRO",
-    description: "DashCam",
-    manufacturer: "Hikvision",
-  },
-  {
-    serialNumber: "869247060300081",
-    imei: "869247060300081",
-    model: "Jimi IoT 4G Al DashCam",
-    description: "Jimi IoT 4G Al DashCam",
-    manufacturer: "JimiIoT",
-  },
-  {
-    serialNumber: "BF00278PAJ00001",
-    imei: "865622075263116",
-    iccid: "89014103211185002781",
-    model: "DHI-ARC3800H-FW2(868)",
-    description: "DAHUA Alarm Hub",
-    manufacturer: "DAHUA VISION TECHNOLOGY",
-  }
-];
 
 export const deviceService = {
   async getUserDevices(userId: string) {
@@ -248,7 +195,7 @@ export const deviceService = {
     if (!input) return null;
     
     // Proactively ensure database handles manual device sync/seeding if not done in session
-    await this.seedMasterRegistry();
+    // await this.seedMasterRegistry();
 
     const registryRef = collection(db, "master_registry");
     
@@ -337,139 +284,11 @@ export const deviceService = {
           }
         } catch (err) {
           console.warn(`Search failed on field ${field} with chunk`, chunk, err);
-          
-          // Fallback to local in-memory search if Firestore collection could not be reached (offline/network issues)
-          const matchedLocal = MASTER_DEVICES.find(dev => {
-            const val = (dev as any)[field];
-            return val && chunk.includes(val);
-          });
-          if (matchedLocal) {
-            console.log("Offline Fallback: Recognized device in local master memory registry", matchedLocal);
-            return { id: `local_${matchedLocal.serialNumber}`, ...matchedLocal } as MasterRegistryEntry;
-          }
         }
       }
-    }
-
-    // Absolute Fallback: Search the entire local MASTER_DEVICES array using the accumulated search candidates.
-    // This handles cases where queries complete successfully but the database collection is empty or rules block it silently.
-    const searchValuesLower = searchValues.map(v => v.toLowerCase().trim());
-    const matchedLocal = MASTER_DEVICES.find(dev => {
-      return [
-        dev.serialNumber,
-        dev.imei,
-        dev.iccid,
-        (dev as any).materialCode,
-        (dev as any).barcode,
-        dev.model
-      ].some(fieldVal => fieldVal && searchValuesLower.includes(fieldVal.toLowerCase().trim()));
-    });
-
-    if (matchedLocal) {
-      console.log("Ultimate Fallback: Recognized device inside master local registry memory:", matchedLocal.serialNumber);
-      return { id: `local_${matchedLocal.serialNumber}`, ...matchedLocal } as MasterRegistryEntry;
     }
 
     return null;
-  },
-
-  async seedMasterRegistry() {
-    // Only run if not already seeded in this browser tab/session memory
-    if (isMasterRegistrySeededThisSession || isMasterRegistrySeedingActive) return;
-
-    // Check sessionStorage as well to avoid redundant database calls if we've completed a session-wide seed successful write
-    const isSeededInSession = sessionStorage.getItem("master_registry_seeded_v16");
-    if (isSeededInSession === "true") {
-      isMasterRegistrySeededThisSession = true;
-      return;
-    }
-
-    try {
-      isMasterRegistrySeedingActive = true;
-      const registryRef = collection(db, "master_registry");
-      const devices = MASTER_DEVICES;
-
-      for (const deviceData of devices) {
-        // Check for existence by ANY of the identifying fields, specifically serialNumber
-        const q = query(
-          registryRef,
-          where("serialNumber", "==", deviceData.serialNumber),
-        );
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-          await addDoc(registryRef, {
-            ...deviceData,
-            lastSeeded: serverTimestamp(),
-            createdAt: serverTimestamp(),
-          });
-          console.log(`Seeded device ${deviceData.serialNumber} into master registry.`);
-        } else {
-          // Update details if it already exists to keep name current
-          const docId = snapshot.docs[0].id;
-          await updateDoc(doc(db, "master_registry", docId), {
-            description: deviceData.description || null,
-            model: deviceData.model,
-            manufacturer: deviceData.manufacturer,
-            lastSeeded: serverTimestamp(),
-          });
-        }
-      }
-
-      // Also proactively update any existing registered user devices in the "devices" collection with this IMEI or Serial Number
-      try {
-        const devicesRef = collection(db, "devices");
-        
-        // Migrate Jimi
-        const jimiQueries = [
-          query(devicesRef, where("serialNumber", "==", "869247060300081")),
-          query(devicesRef, where("imei", "==", "869247060300081"))
-        ];
-        for (const dq of jimiQueries) {
-          const dSnap = await getDocs(dq);
-          for (const docSnap of dSnap.docs) {
-            await updateDoc(doc(db, "devices", docSnap.id), {
-              name: "Jimi IoT 4G Al DashCam",
-              description: "Jimi IoT 4G Al DashCam",
-              manufacturer: "JimiIoT",
-              lastUpdated: serverTimestamp()
-            });
-          }
-        }
-
-        // Migrate Dahua
-        const dahuaQueries = [
-          query(devicesRef, where("serialNumber", "==", "BF00278PAJ00001")),
-          query(devicesRef, where("serialNumber", "==", "BF0O278PAJ00001")),
-          query(devicesRef, where("imei", "==", "865622075263116"))
-        ];
-        for (const dq of dahuaQueries) {
-          const dSnap = await getDocs(dq);
-          for (const docSnap of dSnap.docs) {
-            await updateDoc(doc(db, "devices", docSnap.id), {
-              description: "DAHUA Alarm Hub",
-              model: "DHI-ARC3800H-FW2(868)",
-              manufacturer: "DAHUA VISION TECHNOLOGY",
-              lastUpdated: serverTimestamp()
-            });
-          }
-        }
-      } catch (devMigrateError) {
-        console.warn("Could not migrate registered devices on seeding:", devMigrateError);
-      }
-
-      sessionStorage.setItem("master_registry_seeded_force_v10", "true");
-      sessionStorage.setItem("master_registry_seeded_v16", "true");
-      isMasterRegistrySeededThisSession = true;
-      console.log("Master database registry seeded successfully!");
-    } catch (e) {
-      console.warn(
-        "Master Registry Sync: Note - Only operators should provision global hardware keys.",
-        e,
-      );
-    } finally {
-      isMasterRegistrySeedingActive = false;
-    }
   },
 
   async renewSubscription(deviceId: string, planId: string) {
@@ -498,11 +317,17 @@ export const deviceService = {
         const currentExp = deviceData.expirationDate?.toDate?.() || new Date();
         const baseDate = (isActivation || currentExp < new Date()) ? new Date() : currentExp;
         updatePayload.expirationDate = addDays(baseDate, plan.days);
+
+        // If renewing an expired device, set renewedAt timestamp to show the badge
+        if (deviceData.expirationDate && currentExp < new Date() && !isActivation) {
+          updatePayload.renewedAt = serverTimestamp();
+        }
       }
 
       // If activating an inactive device, set activationDate
       if (!deviceData.activationDate) {
         updatePayload.activationDate = new Date();
+        updatePayload.activatedAt = serverTimestamp();
       }
 
       await updateDoc(deviceRef, updatePayload);
@@ -620,23 +445,125 @@ export const deviceService = {
     }
   },
 
+  async seedSpecificDevice(userId: string, manufacturerKeyword: string, status: "inactive" | "expired") {
+    const defaultInactiveExpiredModels = [
+      { name: "DHI-ARC3800H-FW2(868)", desc: "DAHUA Alarm Hub", manufacturer: "DAHUA VISION TECHNOLOGY" },
+      { name: "DS-7208HUHI-K2", desc: "AcuSense DVR", manufacturer: "HIKVISION" },
+      { name: "Jimi IoT 4G Al DashCam", desc: "Jimi IoT 4G Al DashCam", manufacturer: "JimiIoT" },
+      { name: "DS-KV8113-WME1", desc: "Video Intercom", manufacturer: "HIKVISION" },
+      { name: "AE-DI5052-G40 PRO", desc: "HIKVISION DashCam", manufacturer: "Hikvision" },
+      { name: "DS-7204HQHI-K1", desc: "Digital Video Recorder", manufacturer: "HIKVISION" },
+      { name: "DS-PWA96-M-WE", desc: "HIKVISION AX PRO", manufacturer: "Hikvision" }
+    ];
+
+    const registryRef = collection(db, "master_registry");
+    const snapshot = await getDocs(registryRef);
+    const masterModels = snapshot.docs.map((doc) => doc.data() as MasterRegistryEntry);
+    
+    // Combine robust list with dynamic registries
+    const extraModels = masterModels.map((m) => ({ name: m.model, desc: m.description, manufacturer: m.manufacturer || "HIKVISION" }));
+    
+    const inactiveExpiredModelsMap = new Map();
+    [...defaultInactiveExpiredModels, ...extraModels].forEach(m => inactiveExpiredModelsMap.set(m.name, m));
+    const allModels = Array.from(inactiveExpiredModelsMap.values());
+
+    const matchedModel = allModels.find(m => m.manufacturer.toLowerCase().includes(manufacturerKeyword.toLowerCase()));
+    if (!matchedModel) {
+      console.error("Could not find matching manufacturer model: " + manufacturerKeyword);
+      return;
+    }
+
+    const locations = ["Main Entrance", "Loading Bay 4", "Server Room", "HR Office", "East Wing", "Rear Access", "Staff Canteen", "Boardroom", "Meeting Room", "Side Parking", "Gym Entrance", "Front Parking", "Office Lobby", "Warehouse A"];
+
+    const isDataExpired = status === "expired" && Math.random() > 0.5;
+    
+    const deviceToSeed: any = {
+      name: matchedModel.name,
+      description: matchedModel.desc,
+      manufacturer: matchedModel.manufacturer,
+      location: locations[Math.floor(Math.random() * locations.length)],
+      serialNumber: `C2024${Math.floor(Math.random() * 9000 + 1000)}${status === 'expired' ? 'EX' : 'IN'}WR${Math.floor(Math.random() * 90000 + 10000)}`,
+      imei: `11223344${Math.floor(Math.random() * 9000000 + 1000000)}`,
+      iccid: `8900000000${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
+      subscriptionStatus: status,
+      totalDataMb: 360,
+      remainingDataMb: status === "expired" && isDataExpired ? 0 : 360,
+      planId: status === "expired" && isDataExpired ? "topup" : "yearly",
+      expirationDate: status === "expired" ? (isDataExpired ? addDays(new Date(), 100) : addDays(new Date(), -Math.floor(Math.random() * 30 + 1))) : addDays(new Date(), 365),
+      createdAt: addDays(new Date(), -Math.floor(Math.random() * 20 + 5)),
+      ownerId: userId,
+      lastUpdated: serverTimestamp(),
+    };
+
+    if (status === "expired") {
+      deviceToSeed.activationDate = addDays(new Date(), -400);
+      if (!isDataExpired) {
+        deviceToSeed.remainingDataMb = parseFloat((Math.random() * 20).toFixed(1));
+      }
+    }
+
+    const batch = writeBatch(db);
+    const docRef = doc(collection(db, "devices"));
+    batch.set(docRef, deviceToSeed);
+
+    const usageCollection = collection(db, "devices", docRef.id, "usage");
+    for (let i = 0; i < 14; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      batch.set(doc(usageCollection), {
+        timestamp: date,
+        dataUsedMb: parseFloat((Math.random() * 2.5 + 1.5).toFixed(2)),
+        activeHours: Math.floor(Math.random() * 8) + 4,
+      });
+    }
+
+    await batch.commit();
+  },
+
   async seedDevices(userId: string, config: SeedConfig = { activeCount: 2, expiredCount: 6, inactiveCount: 4, newDevicesCount: 1 }) {
     const devicesToSeed: (Partial<Device> & { isNew?: boolean })[] = [];
     
-    const deviceModels = [
-      { name: "DS-7208HUHI-K2", desc: "AcuSense DVR" },
-      { name: "DS-KV8113-WME1", desc: "Video Intercom" },
-      { name: "DS-7204HQHI-K1", desc: "Digital Video Recorder" },
-      { name: "DS-K1T341AM", desc: "Access Terminal" },
-      { name: "DS-2CD2143G0-IS", desc: "Network Dome Camera" },
-      { name: "DS-2CD2047G2-L", desc: "ColorVu Bullet" },
-      { name: "DS-2CD2T47G2-L", desc: "High-Res Bullet" },
-      { name: "DS-2CD2343G0-I", desc: "Fixed Turret" },
-      { name: "DS-PWA96-M-WE", desc: "Wireless Alarm Panel" },
-      { name: "DS-2CD2185G0-IMS", desc: "HDMI Dome Camera" },
-      { name: "DS-2CD2T86G2-IS", desc: "AcuSense Bullet" },
-      { name: "DS-2CD2347G2-L", desc: "ColorVu Fixed Turret" },
+    const defaultModels = [
+      { name: "DS-7208HUHI-K2", desc: "AcuSense DVR", manufacturer: "HIKVISION" },
+      { name: "DS-KV8113-WME1", desc: "Video Intercom", manufacturer: "HIKVISION" },
+      { name: "DS-7204HQHI-K1", desc: "Digital Video Recorder", manufacturer: "HIKVISION" },
+      { name: "DS-K1T341AM", desc: "Access Terminal", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2143G0-IS", desc: "Network Dome Camera", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2047G2-L", desc: "ColorVu Bullet", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2T47G2-L", desc: "High-Res Bullet", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2343G0-I", desc: "Fixed Turret", manufacturer: "HIKVISION" },
+      { name: "DS-PWA96-M-WE", desc: "Wireless Alarm Panel", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2185G0-IMS", desc: "HDMI Dome Camera", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2T86G2-IS", desc: "AcuSense Bullet", manufacturer: "HIKVISION" },
+      { name: "DS-2CD2347G2-L", desc: "ColorVu Fixed Turret", manufacturer: "HIKVISION" },
     ];
+
+    const defaultInactiveExpiredModels = [
+      { name: "DHI-ARC3800H-FW2(868)", desc: "DAHUA Alarm Hub", manufacturer: "DAHUA VISION TECHNOLOGY" },
+      { name: "DS-7208HUHI-K2", desc: "AcuSense DVR", manufacturer: "HIKVISION" },
+      { name: "Jimi IoT 4G Al DashCam", desc: "Jimi IoT 4G Al DashCam", manufacturer: "JimiIoT" },
+      { name: "DS-KV8113-WME1", desc: "Video Intercom", manufacturer: "HIKVISION" },
+      { name: "AE-DI5052-G40 PRO", desc: "HIKVISION DashCam", manufacturer: "Hikvision" },
+      { name: "DS-7204HQHI-K1", desc: "Digital Video Recorder", manufacturer: "HIKVISION" },
+      { name: "DS-PWA96-M-WE", desc: "HIKVISION AX PRO", manufacturer: "Hikvision" },
+      ...defaultModels
+    ];
+
+    // Fetch central master registry to get device models
+    const registryRef = collection(db, "master_registry");
+    const snapshot = await getDocs(registryRef);
+    const masterModels = snapshot.docs.map((doc) => doc.data() as MasterRegistryEntry);
+
+    const extraModels = masterModels.map((m) => ({ name: m.model, desc: m.description, manufacturer: m.manufacturer || "HIKVISION" }));
+    
+    // Combine default robust list with any dynamic master registries
+    const deviceModelsMap = new Map();
+    [...defaultModels, ...extraModels].forEach(m => deviceModelsMap.set(m.name, m));
+    const deviceModels = Array.from(deviceModelsMap.values());
+    
+    const inactiveExpiredModelsMap = new Map();
+    [...defaultInactiveExpiredModels, ...extraModels].forEach(m => inactiveExpiredModelsMap.set(m.name, m));
+    const inactiveExpiredModels = Array.from(inactiveExpiredModelsMap.values());
 
     const locations = ["Main Entrance", "Loading Bay 4", "Server Room", "HR Office", "East Wing", "Rear Access", "Staff Canteen", "Boardroom", "Meeting Room", "Side Parking", "Gym Entrance", "Front Parking", "Office Lobby", "Warehouse A"];
 
@@ -646,6 +573,7 @@ export const deviceService = {
       devicesToSeed.push({
         name: model.name,
         description: model.desc,
+        manufacturer: model.manufacturer,
         location: locations[Math.floor(Math.random() * locations.length)],
         serialNumber: `C2024${Math.floor(Math.random() * 9000 + 1000)}ZZWR${Math.floor(Math.random() * 90000 + 10000)}`,
         imei: `35876210${Math.floor(Math.random() * 9000000 + 1000000)}`,
@@ -668,6 +596,7 @@ export const deviceService = {
       devicesToSeed.push({
         name: model.name,
         description: model.desc,
+        manufacturer: model.manufacturer,
         location: locations[Math.floor(Math.random() * locations.length)],
         serialNumber: `C2023${Math.floor(Math.random() * 9000 + 1000)}AAWR${Math.floor(Math.random() * 90000 + 10000)}`,
         imei: `86234105${Math.floor(Math.random() * 9000000 + 1000000)}`,
@@ -683,12 +612,13 @@ export const deviceService = {
 
     // 3. Expired Devices (Half plan, half data)
     for (let i = 0; i < config.expiredCount; i++) {
-      const model = deviceModels[(config.activeCount + i) % deviceModels.length];
+      const model = inactiveExpiredModels[i % inactiveExpiredModels.length];
       const isDataExpired = i < Math.ceil(config.expiredCount / 2);
       
       devicesToSeed.push({
         name: model.name,
         description: model.desc,
+        manufacturer: model.manufacturer,
         location: locations[Math.floor(Math.random() * locations.length)],
         serialNumber: `C2022${Math.floor(Math.random() * 9000 + 1000)}EXWR${Math.floor(Math.random() * 90000 + 10000)}`,
         imei: `11223344${Math.floor(Math.random() * 9000000 + 1000000)}`,
@@ -704,10 +634,11 @@ export const deviceService = {
 
     // 4. Inactive Devices
     for (let i = 0; i < config.inactiveCount; i++) {
-      const model = deviceModels[(config.activeCount + config.expiredCount + i) % deviceModels.length];
+      const model = inactiveExpiredModels[(config.expiredCount + i) % inactiveExpiredModels.length];
       devicesToSeed.push({
         name: model.name,
         description: model.desc,
+        manufacturer: model.manufacturer,
         location: locations[Math.floor(Math.random() * locations.length)],
         serialNumber: `C2024${Math.floor(Math.random() * 9000 + 1000)}INWR${Math.floor(Math.random() * 90000 + 10000)}`,
         imei: `12345678${Math.floor(Math.random() * 9000000 + 1000000)}`,

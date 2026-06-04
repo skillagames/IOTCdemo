@@ -48,6 +48,13 @@ const Profile: React.FC = () => {
   const [inactiveCount, setInactiveCount] = useState<number | "">(4);
   const [newCount, setNewCount] = useState<number | "">(1);
 
+  const [dahuaStatus, setDahuaStatus] = useState<"inactive" | "expired">("expired");
+  const [jimiIotStatus, setJimiIotStatus] = useState<"inactive" | "expired">("expired");
+  const [hikvisionStatus, setHikvisionStatus] = useState<"inactive" | "expired">("expired");
+  const [isSeedingDahua, setIsSeedingDahua] = useState(false);
+  const [isSeedingJimiIot, setIsSeedingJimiIot] = useState(false);
+  const [isSeedingHikvision, setIsSeedingHikvision] = useState(false);
+
   // Edit Profile State
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
@@ -122,6 +129,42 @@ const Profile: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddDahua = async () => {
+    if (!user) return;
+    setIsSeedingDahua(true);
+    try {
+      await deviceService.seedSpecificDevice(user.uid, "DAHUA", dahuaStatus);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSeedingDahua(false);
+    }
+  };
+
+  const handleAddJimiIot = async () => {
+    if (!user) return;
+    setIsSeedingJimiIot(true);
+    try {
+      await deviceService.seedSpecificDevice(user.uid, "JimiIoT", jimiIotStatus);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSeedingJimiIot(false);
+    }
+  };
+
+  const handleAddHikvision = async () => {
+    if (!user) return;
+    setIsSeedingHikvision(true);
+    try {
+      await deviceService.seedSpecificDevice(user.uid, "HIKVISION", hikvisionStatus);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSeedingHikvision(false);
     }
   };
 
@@ -438,6 +481,65 @@ const Profile: React.FC = () => {
                         <Trash2 className="h-3 w-3" />
                         <span>Clear Device Pool</span>
                       </button>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-indigo-500/20 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleAddDahua}
+                          disabled={isSeedingDahua}
+                          className="flex-1 rounded-lg bg-slate-900 border border-indigo-500/30 py-2.5 text-[9px] font-black font-montserrat uppercase tracking-widest text-indigo-300 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isSeedingDahua ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
+                          Add Dahua Device
+                        </button>
+                        <select
+                          value={dahuaStatus}
+                          onChange={(e) => setDahuaStatus(e.target.value as "inactive" | "expired")}
+                          className="w-24 bg-slate-950 text-[9px] font-bold text-white px-2 py-2.5 rounded-lg border border-indigo-500/30 outline-none focus:border-indigo-400"
+                        >
+                          <option value="inactive">Inactive</option>
+                          <option value="expired">Expired</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleAddJimiIot}
+                          disabled={isSeedingJimiIot}
+                          className="flex-1 rounded-lg bg-slate-900 border border-indigo-500/30 py-2.5 text-[9px] font-black font-montserrat uppercase tracking-widest text-indigo-300 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isSeedingJimiIot ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
+                          Add JimiIoT Device
+                        </button>
+                        <select
+                          value={jimiIotStatus}
+                          onChange={(e) => setJimiIotStatus(e.target.value as "inactive" | "expired")}
+                          className="w-24 bg-slate-950 text-[9px] font-bold text-white px-2 py-2.5 rounded-lg border border-indigo-500/30 outline-none focus:border-indigo-400"
+                        >
+                          <option value="inactive">Inactive</option>
+                          <option value="expired">Expired</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleAddHikvision}
+                          disabled={isSeedingHikvision}
+                          className="flex-1 rounded-lg bg-slate-900 border border-indigo-500/30 py-2.5 text-[9px] font-black font-montserrat uppercase tracking-widest text-indigo-300 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isSeedingHikvision ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
+                          Add Hikvision Device
+                        </button>
+                        <select
+                          value={hikvisionStatus}
+                          onChange={(e) => setHikvisionStatus(e.target.value as "inactive" | "expired")}
+                          className="w-24 bg-slate-950 text-[9px] font-bold text-white px-2 py-2.5 rounded-lg border border-indigo-500/30 outline-none focus:border-indigo-400"
+                        >
+                          <option value="inactive">Inactive</option>
+                          <option value="expired">Expired</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>

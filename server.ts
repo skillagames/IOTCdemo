@@ -150,7 +150,142 @@ app.post('/api/icon-push-test', async (req, res) => {
   }
 });
 
+const MASTER_DEVICES = [
+  {
+    serialNumber: "6001237010828",
+    imei: "358762109845321",
+    iccid: "89014103211185101234",
+    model: "IoT-Hub-X1",
+    manufacturer: "IoTConnect Labs",
+  },
+  {
+    imei: "869816053499231",
+    serialNumber: "K78038990",
+    materialCode: "303201410",
+    barcode: "6931847166557",
+    model: "DS-MCW407",
+    description: "Body Camera",
+    manufacturer: "Hikvision",
+  },
+  {
+    serialNumber: "Q44112434",
+    imei: "358762109845777",
+    iccid: "89014103211185109999",
+    materialCode: "302401688",
+    barcode: "6941264054313",
+    model: "DS-PWA96-M-WE",
+    description: "HIKVISION AX PRO",
+    manufacturer: "Hikvision",
+  },
+  {
+    serialNumber: "CK2144765",
+    imei: "867806072755749",
+    barcode: "6975248490460",
+    materialCode: "307900723",
+    model: "AE-DI5052-G40 PRO",
+    description: "HIKVISION DashCam",
+    manufacturer: "Hikvision",
+  },
+  {
+    serialNumber: "869247060300081",
+    imei: "869247060300081",
+    model: "Jimi IoT 4G Al DashCam",
+    description: "Jimi IoT 4G Al DashCam",
+    manufacturer: "JimiIoT",
+  },
+  {
+    serialNumber: "BF00278PAJ00001",
+    imei: "865622075263116",
+    iccid: "89014103211185002781",
+    model: "DHI-ARC3800H-FW2(868)",
+    description: "DAHUA Alarm Hub",
+    manufacturer: "DAHUA VISION TECHNOLOGY",
+  }
+];
+
+async function seedMasterRegistry() {
+  if (!initAdmin()) {
+    console.log("Skipping seedMasterRegistry: Firebase Admin not configured yet.");
+    return;
+  }
+  try {
+    const db = admin.firestore();
+    const registryRef = db.collection("master_registry");
+    const devicesRef = db.collection("devices");
+
+    for (const deviceData of MASTER_DEVICES) {
+      const q = registryRef.where("serialNumber", "==", deviceData.serialNumber);
+      const snapshot = await q.get();
+
+      if (snapshot.empty) {
+        await registryRef.add({
+          ...deviceData,
+          lastSeeded: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log(`[Server] Seeded device ${deviceData.serialNumber} into master registry.`);
+      } else {
+        const docId = snapshot.docs[0].id;
+        await registryRef.doc(docId).update({
+          description: deviceData.description || null,
+          model: deviceData.model,
+          manufacturer: deviceData.manufacturer,
+          lastSeeded: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    }
+
+    // Proactive migration check for older dummy data (optional but ensures backwards compatibility)
+    try {
+      const migrations = [
+        {
+          queries: [
+            devicesRef.where("serialNumber", "==", "869247060300081"),
+            devicesRef.where("imei", "==", "869247060300081")
+          ],
+          update: { name: "Jimi IoT 4G Al DashCam", description: "Jimi IoT 4G Al DashCam", manufacturer: "JimiIoT" }
+        },
+        {
+          queries: [
+            devicesRef.where("serialNumber", "==", "BF00278PAJ00001"),
+            devicesRef.where("serialNumber", "==", "BF0O278PAJ00001"),
+            devicesRef.where("imei", "==", "865622075263116")
+          ],
+          update: { description: "DAHUA Alarm Hub", model: "DHI-ARC3800H-FW2(868)", manufacturer: "DAHUA VISION TECHNOLOGY" }
+        },
+        {
+          queries: [
+            devicesRef.where("model", "==", "AE-DI5052-G40 PRO"),
+            devicesRef.where("serialNumber", "==", "CK2144765")
+          ],
+          update: { description: "HIKVISION DashCam", manufacturer: "Hikvision" }
+        }
+      ];
+
+      for (const mig of migrations) {
+        for (const q of mig.queries) {
+          const snap = await q.get();
+          for (const doc of snap.docs) {
+            await doc.ref.update({
+              ...mig.update,
+              lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        }
+      }
+    } catch (migErr) {
+      console.warn("[Server] Could not run data migration on seeding:", migErr);
+    }
+    console.log("[Server] Master database registry synced from server centrally!");
+  } catch (e) {
+    console.warn("[Server] Master Registry Sync failed.", e);
+  }
+}
+
 async function startServer() {
+  // Run seeding on startup
+  seedMasterRegistry();
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
